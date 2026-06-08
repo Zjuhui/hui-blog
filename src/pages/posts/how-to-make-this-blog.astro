@@ -1,0 +1,44 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import GlassHeader from "../../components/GlassHeader.astro";
+---
+
+<BaseLayout title="如何制作这样的博客 | 珲">
+  <GlassHeader />
+  <main class="page-shell article glass">
+    <p class="quiet-label">Build log / CN + EN / Week 01</p>
+    <h1>如何制作这样的博客</h1>
+    <p class="lead">第一版不要追求复杂系统。先把写作、页面、部署和版本记录跑通。</p>
+    <h2>中文草稿</h2>
+    <p>这个博客的第一版选择 Astro 和静态部署。原因很简单：现在最重要的不是框架复杂度，而是形成一个可以持续更新的写作和发布流程。</p>
+    <p>内容先用 Markdown 起草，页面由 Astro 组合组件并在构建时生成静态 HTML。这样 GitHub Pages 可以免费托管，后续也方便扩展。</p>
+    <h2>English Draft</h2>
+    <p>The first version uses Astro as a static site generator. The goal is to establish a writing, publishing, and versioning loop before adding heavier systems.</p>
+  </main>
+</BaseLayout>
+
+<style>
+  .article {
+    max-width: 880px;
+    margin-top: 64px;
+    padding: clamp(32px, 7vw, 72px);
+    border-radius: var(--radius-xl);
+  }
+
+  h1 {
+    margin: 10px 0 0;
+    font-size: clamp(36px, 6vw, 68px);
+    line-height: 1.08;
+  }
+
+  .lead,
+  p {
+    color: var(--muted);
+    font-size: 18px;
+  }
+
+  h2 {
+    margin-top: 42px;
+  }
+</style>
+

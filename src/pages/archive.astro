@@ -1,0 +1,34 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import GlassHeader from "../components/GlassHeader.astro";
+---
+
+<BaseLayout title="Archive | 珲">
+  <GlassHeader />
+  <main class="page-shell simple-page glass">
+    <p class="quiet-label">Archive</p>
+    <h1>版本、草稿与彩蛋</h1>
+    <p>这里记录文章、设计、代码版本和 token ledger。</p>
+  </main>
+</BaseLayout>
+
+<style>
+  .simple-page {
+    margin-top: 64px;
+    padding: clamp(32px, 7vw, 72px);
+    border-radius: var(--radius-xl);
+  }
+
+  h1 {
+    margin: 10px 0 0;
+    font-size: clamp(36px, 6vw, 72px);
+    line-height: 1.04;
+  }
+
+  p:last-child {
+    max-width: 720px;
+    color: var(--muted);
+    font-size: 18px;
+  }
+</style>
+

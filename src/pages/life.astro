@@ -1,0 +1,34 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import GlassHeader from "../components/GlassHeader.astro";
+---
+
+<BaseLayout title="Life | 珲">
+  <GlassHeader />
+  <main class="page-shell simple-page glass">
+    <p class="quiet-label">Life</p>
+    <h1>生活随笔 / Field Notes</h1>
+    <p>生活观察、阅读记录、情绪与城市会慢慢生长在这里。</p>
+  </main>
+</BaseLayout>
+
+<style>
+  .simple-page {
+    margin-top: 64px;
+    padding: clamp(32px, 7vw, 72px);
+    border-radius: var(--radius-xl);
+  }
+
+  h1 {
+    margin: 10px 0 0;
+    font-size: clamp(36px, 6vw, 72px);
+    line-height: 1.04;
+  }
+
+  p:last-child {
+    max-width: 720px;
+    color: var(--muted);
+    font-size: 18px;
+  }
+</style>
+

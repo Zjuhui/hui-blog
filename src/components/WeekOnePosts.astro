@@ -1,0 +1,115 @@
+---
+const base = import.meta.env.BASE_URL.endsWith("/")
+  ? import.meta.env.BASE_URL
+  : `${import.meta.env.BASE_URL}/`;
+
+const posts = [
+  {
+    title: "为什么要做这个博客",
+    meta: "Essay / CN + EN",
+    body: "从科研记录、个人叙事和长期作品集三个角度，解释为什么需要一个自己的空间。",
+    href: `${base}posts/why-this-blog/`,
+  },
+  {
+    title: "如何制作这样的博客",
+    meta: "Build log / CN + EN",
+    body: "记录从零构建雏形、使用 Markdown、GitHub Pages、Astro 和 Git 的过程。",
+    href: `${base}posts/how-to-make-this-blog/`,
+  },
+];
+---
+
+<section class="week page-shell">
+  <div class="week-panel glass">
+    <div class="week-heading">
+      <p class="quiet-label">Week 01</p>
+      <h2>先写两篇，先让系统活起来。</h2>
+    </div>
+
+    <div class="post-list">
+      {
+        posts.map((post) => (
+          <a class="post-row" href={post.href}>
+            <div>
+              <span>{post.meta}</span>
+              <h3>{post.title}</h3>
+              <p>{post.body}</p>
+            </div>
+            <strong>Read</strong>
+          </a>
+        ))
+      }
+    </div>
+  </div>
+</section>
+
+<style>
+  .week {
+    padding: 34px 0 42px;
+  }
+
+  .week-panel {
+    display: grid;
+    gap: 24px;
+    padding: clamp(26px, 5vw, 48px);
+    border-radius: var(--radius-xl);
+  }
+
+  .week-heading h2 {
+    max-width: 720px;
+    margin: 8px 0 0;
+    font-size: clamp(28px, 4.6vw, 54px);
+    line-height: 1.08;
+  }
+
+  .post-list {
+    display: grid;
+    gap: 10px;
+  }
+
+  .post-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    padding: 22px 0;
+    border-top: 1px solid var(--line);
+  }
+
+  .post-row span {
+    color: var(--muted);
+    font-size: 13px;
+    font-weight: 650;
+  }
+
+  .post-row h3 {
+    margin: 8px 0 0;
+    font-size: clamp(22px, 3vw, 32px);
+    line-height: 1.18;
+  }
+
+  .post-row p {
+    max-width: 680px;
+    margin: 10px 0 0;
+    color: var(--muted);
+  }
+
+  .post-row strong {
+    display: inline-grid;
+    place-items: center;
+    flex: 0 0 auto;
+    min-width: 76px;
+    min-height: 44px;
+    border: 1px solid rgba(17, 19, 23, 0.12);
+    border-radius: var(--radius-pill);
+    background: rgba(255, 255, 255, 0.38);
+    font-size: 14px;
+  }
+
+  @media (max-width: 640px) {
+    .post-row {
+      align-items: flex-start;
+      flex-direction: column;
+    }
+  }
+</style>

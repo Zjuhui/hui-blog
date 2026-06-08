@@ -1,56 +1,85 @@
-# 珲 Blog Prototype
+# 珲 Blog
 
-这是一个零构建的个人博客雏形。你可以直接打开 `index.html` 预览，也可以把整个目录推到 GitHub 仓库并启用 GitHub Pages。
+Blog: In AI Era, What can I do?
 
-## 当前定位
+这是一个用 Astro 搭建的个人博客。第一阶段目标很简单：用 Markdown 和组件化页面把博客系统跑起来，再逐步加入个性化、作品集、文章分类和 token ledger。
+
+## 当前版本
 
 - 名字：珲
-- 远程仓库初始命题：Blog: In AI Era, What can I do?
-- 内容：科研、生活、作品集分区记录
-- 语言：中英文双语
-- 第一周文章：
-  - 《为什么要做这个博客》
-  - 《如何制作这样的博客》
-- 彩蛋：记录每个组件、页面、版本背后的 token 使用量
+- 主题：科研、生活、作品集
+- 语言：中文和英文双语
+- 部署：GitHub Pages
+- 线上地址：https://zjuhui.github.io/hui-blog/
+- Notion 工作台：https://app.notion.com/p/379d48bea36581418150f0752012084b
 
-## v0.1 工作台
+## 怎么运行
 
-- Notion workspace: https://app.notion.com/p/379d48bea36581418150f0752012084b
-- Figma file: https://www.figma.com/design/KcZFkNsH1kX69UJdzT9mwz
-- Figma clean pass spec: `figma/clean-pass-spec.md`
-- Current Figma note: `taste-skill` 已卸载；clean pass 写入暂时受 Figma Starter plan MCP 调用额度限制。
-
-## 推荐工作流
-
-1. 在 `content/` 写 Markdown 草稿。
-2. 稳定后同步到 `posts/` 的 HTML 页面。
-3. 每次完成页面或组件，在 `logs/token-ledger.md` 记录一次。
-4. 设计想法沉淀到 `figma/figma-brief.md`，之后再进 Figma 做视觉系统。
-5. 使用 Git 分支推进内容：
+第一次下载项目后：
 
 ```powershell
-git checkout -b post/why-this-blog
-git add .
-git commit -m "Add first blog prototype and drafts"
-git checkout main
-git merge post/why-this-blog
+npm install
 ```
 
-## v0.1 Git Plan
+本地预览：
 
-- `main`: 稳定发布分支
-- `post/why-this-blog`: 第一篇文章分支
-- `post/how-to-make-this-blog`: 第二篇文章分支
-- `design/v0.1-clean-pass`: Figma 和视觉系统迭代分支
+```powershell
+npm run dev
+```
+
+构建静态网站：
+
+```powershell
+npm run build
+```
+
+构建后，Astro 会把网站生成到 `dist/`。
+
+## 代码结构
+
+```text
+src/layouts/BaseLayout.astro
+  全站 HTML 骨架，负责 title、description、全局 CSS。
+
+src/components/GlassHeader.astro
+  顶部毛玻璃导航。
+
+src/components/Hero.astro
+  首页第一屏，包含博客宣言、按钮和“珲”视觉标记。
+
+src/components/SectionShowcase.astro
+  Research / Life / Works 三个内容入口。
+
+src/components/WeekOnePosts.astro
+  第一周两篇文章入口。
+
+src/pages/index.astro
+  首页，把上面的组件组合起来。
+
+src/pages/posts/*.astro
+  文章详情页。
+```
+
+## 学习路线
+
+1. 先看 `src/pages/index.astro`，理解页面是怎么组合组件的。
+2. 再看 `src/components/Hero.astro`，理解首页视觉是怎么写出来的。
+3. 再看 `src/styles/global.css`，理解全局颜色、毛玻璃、圆角和背景。
+4. 想改文字，先改 `src/pages/index.astro` 或对应组件里的文本。
+5. 想改视觉，优先改 `src/styles/global.css` 里的 CSS 变量。
+
+详细解释在：
+
+```text
+docs/homepage-learning.md
+```
 
 ## GitHub Pages
 
-如果你把这些文件放在仓库根目录：
+当前仓库保留了根目录静态输出，方便 GitHub Pages 直接从 `main / root` 发布。
 
-1. 打开仓库 Settings。
-2. 进入 Pages。
-3. Source 选择 `Deploy from a branch`。
-4. Branch 选择 `main` 和 `/root`。
-5. 等待 GitHub 生成站点链接。
+后续更推荐切换到 GitHub Actions 自动部署，相关配置在：
 
-如果你后续希望全部用 Markdown 自动生成页面，可以再迁移到 GitHub Pages 内置 Jekyll，或者等内容多了再考虑 Astro。
+```text
+.github/workflows/deploy.yml
+```

@@ -1,0 +1,27 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import GlassHeader from "../components/GlassHeader.astro";
+import Hero from "../components/Hero.astro";
+import SectionShowcase from "../components/SectionShowcase.astro";
+import WeekOnePosts from "../components/WeekOnePosts.astro";
+
+const base = import.meta.env.BASE_URL.endsWith("/")
+  ? import.meta.env.BASE_URL
+  : `${import.meta.env.BASE_URL}/`;
+---
+
+<BaseLayout
+  title="珲 | In AI Era"
+  description="珲 is a bilingual personal blog for research, life, works, and the question of what to do in the AI era."
+>
+  <GlassHeader />
+  <main>
+    <Hero />
+    <SectionShowcase />
+    <WeekOnePosts />
+  </main>
+  <footer class="site-footer page-shell">
+    <span>珲</span>
+    <a href={`${base}logs/token-ledger.md`}>Token ledger</a>
+  </footer>
+</BaseLayout>

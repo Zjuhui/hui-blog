@@ -1,0 +1,105 @@
+---
+const base = import.meta.env.BASE_URL.endsWith("/")
+  ? import.meta.env.BASE_URL
+  : `${import.meta.env.BASE_URL}/`;
+
+const sections = [
+  {
+    title: "Research",
+    body: "论文阅读、实验复盘、技术博客、工具链和研究想法。中文写清楚思路，英文训练表达。",
+    href: `${base}research/`,
+  },
+  {
+    title: "Life",
+    body: "生活观察、阅读记录、情绪与城市。不急着总结，只保留真实的纹理。",
+    href: `${base}life/`,
+  },
+  {
+    title: "Works",
+    body: "项目、设计、论文图、工具和公开成果。每个作品保留动机、版本和复盘。",
+    href: `${base}works/`,
+  },
+];
+---
+
+<section class="showcase page-shell" aria-label="Blog sections">
+  <div class="section-heading">
+    <p class="quiet-label">Three rooms for one long archive</p>
+    <h2>把不同语气放在不同房间。</h2>
+  </div>
+
+  <div class="rooms">
+    {
+      sections.map((section) => (
+        <a class="room glass" href={section.href}>
+          <span>{section.title}</span>
+          <p>{section.body}</p>
+        </a>
+      ))
+    }
+  </div>
+</section>
+
+<style>
+  .showcase {
+    padding: 34px 0;
+  }
+
+  .section-heading {
+    display: grid;
+    gap: 10px;
+    margin-bottom: 18px;
+  }
+
+  h2 {
+    max-width: 720px;
+    margin: 0;
+    font-size: clamp(30px, 5vw, 58px);
+    line-height: 1.05;
+    letter-spacing: 0;
+  }
+
+  .rooms {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+  }
+
+  .room {
+    display: grid;
+    gap: 54px;
+    min-height: 280px;
+    padding: 28px;
+    border-radius: 34px;
+    transition:
+      transform 180ms ease,
+      box-shadow 180ms ease;
+  }
+
+  .room:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 32px 110px rgba(42, 48, 60, 0.2);
+  }
+
+  .room span {
+    font-size: 28px;
+    font-weight: 800;
+    letter-spacing: 0;
+  }
+
+  .room p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 16px;
+  }
+
+  @media (max-width: 820px) {
+    .rooms {
+      grid-template-columns: 1fr;
+    }
+
+    .room {
+      min-height: 210px;
+    }
+  }
+</style>

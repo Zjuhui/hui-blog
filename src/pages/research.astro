@@ -1,0 +1,34 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import GlassHeader from "../components/GlassHeader.astro";
+---
+
+<BaseLayout title="Research | 珲">
+  <GlassHeader />
+  <main class="page-shell simple-page glass">
+    <p class="quiet-label">Research</p>
+    <h1>科研记录 / Research Notes</h1>
+    <p>论文阅读、实验过程、工具链和研究想法会先放在这里。</p>
+  </main>
+</BaseLayout>
+
+<style>
+  .simple-page {
+    margin-top: 64px;
+    padding: clamp(32px, 7vw, 72px);
+    border-radius: var(--radius-xl);
+  }
+
+  h1 {
+    margin: 10px 0 0;
+    font-size: clamp(36px, 6vw, 72px);
+    line-height: 1.04;
+  }
+
+  p:last-child {
+    max-width: 720px;
+    color: var(--muted);
+    font-size: 18px;
+  }
+</style>
+

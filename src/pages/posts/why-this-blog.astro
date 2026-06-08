@@ -1,0 +1,44 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import GlassHeader from "../../components/GlassHeader.astro";
+---
+
+<BaseLayout title="为什么要做这个博客 | 珲">
+  <GlassHeader />
+  <main class="page-shell article glass">
+    <p class="quiet-label">Essay / CN + EN / Week 01</p>
+    <h1>为什么要做这个博客</h1>
+    <p class="lead">我想要一个自己的空间，用来放下那些不适合只留在聊天窗口、实验记录或者社交媒体里的东西。</p>
+    <h2>中文草稿</h2>
+    <p>这个博客首先是一个长期记录系统。科研会产生很多中间状态：一个突然想到的问题、一次实验失败的原因、一篇论文真正有价值的部分、一段工具链踩坑记录。</p>
+    <p>它也是一个生活切片的容器。我希望生活部分不服务于效率，也不伪装成结论，只记录某个阶段真实关心的东西。</p>
+    <h2>English Draft</h2>
+    <p>This blog starts as a long-term recording system. Research produces intermediate states: a question, a failed experiment, a useful reading note, or a small toolchain decision.</p>
+  </main>
+</BaseLayout>
+
+<style>
+  .article {
+    max-width: 880px;
+    margin-top: 64px;
+    padding: clamp(32px, 7vw, 72px);
+    border-radius: var(--radius-xl);
+  }
+
+  h1 {
+    margin: 10px 0 0;
+    font-size: clamp(36px, 6vw, 68px);
+    line-height: 1.08;
+  }
+
+  .lead,
+  p {
+    color: var(--muted);
+    font-size: 18px;
+  }
+
+  h2 {
+    margin-top: 42px;
+  }
+</style>
+
