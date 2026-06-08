@@ -177,3 +177,131 @@ src/content/blog/*.md
 | 背景、圆角、毛玻璃 | `src/styles/global.css` |
 | 网页 title 和 description | `src/pages/index.astro` |
 
+## 11. 从代码到网页：一次更新到底发生了什么
+
+你每次更新博客，本质上会经过这条链路：
+
+```text
+修改源码或文章
+  -> 本地预览
+  -> 构建静态网页
+  -> Git 记录改动
+  -> push 到 GitHub
+  -> GitHub Pages 展示新版本
+```
+
+对应命令是：
+
+```powershell
+git pull
+npm run dev
+npm run build:pages
+git status
+git add .
+git commit -m "Describe what changed"
+git push origin main
+```
+
+为什么不是直接改 GitHub Pages 上的网页？
+
+因为线上网页只是构建结果，真正应该长期维护的是 `src/`、`docs/`、`public/` 这些源文件。这样以后改版、迁移、回滚都会更稳。
+
+## 12. Git 在这里负责什么
+
+Git 可以理解成你的博客版本记录系统。
+
+它不是用来“发布网页”的工具，而是用来回答这些问题：
+
+- 我这次改了哪些文件？
+- 这次改动能不能被命名和保存？
+- 如果改坏了，能不能回到之前的版本？
+- 我能不能在另一台电脑继续接着写？
+
+常用命令：
+
+| 命令 | 作用 |
+| --- | --- |
+| `git status` | 查看当前有哪些文件被修改 |
+| `git add .` | 把本次要保存的修改放进暂存区 |
+| `git commit -m "..."` | 给这次修改拍一个版本快照 |
+| `git pull` | 从 GitHub 拉取最新版本 |
+| `git push origin main` | 把本地提交上传到 GitHub |
+
+推荐习惯：
+
+- 开始写之前先 `git pull`。
+- 每完成一个清晰的小目标就 commit。
+- commit message 写“这次做了什么”，不要只写 `update`。
+
+例如：
+
+```powershell
+git commit -m "Add homepage learning notes"
+git commit -m "Refine glass header spacing"
+git commit -m "Draft why-this-blog post"
+```
+
+## 13. GitHub 在这里负责什么
+
+GitHub 是远程仓库，也就是博客代码的云端版本。
+
+它在这个项目里做三件事：
+
+1. 保存代码，方便你在不同电脑之间同步。
+2. 托管公开仓库，让别人可以阅读代码，但不能随便改你的仓库。
+3. 通过 GitHub Pages 把静态网页发布成线上地址。
+
+别人能不能编辑你的博客？
+
+不能直接编辑。公开仓库意味着别人可以看代码、fork 一份、提交 Pull Request，但不能直接 push 到你的 `main` 分支。真正能改线上博客的人，是有仓库写权限的人。
+
+如果你在另一台电脑上更新博客，流程是：
+
+```powershell
+git clone https://github.com/Zjuhui/hui-blog.git
+cd hui-blog
+npm install
+git pull
+npm run dev
+```
+
+改完以后：
+
+```powershell
+npm run build:pages
+git add .
+git commit -m "Update blog content"
+git push origin main
+```
+
+线上地址是：
+
+```text
+https://zjuhui.github.io/hui-blog/
+```
+
+如果 `git push origin main` 因为 Windows HTTPS 连接问题失败，可以试：
+
+```powershell
+git -c http.version=HTTP/1.1 -c http.sslBackend=schannel push origin main
+```
+
+## 14. 为什么要运行 npm run build:pages
+
+Astro 的源码在 `src/` 里，但 GitHub Pages 当前发布的是仓库根目录里的静态文件。
+
+`npm run build:pages` 会做两步：
+
+```text
+astro build
+  -> 生成 dist/
+
+node scripts/sync-dist.mjs
+  -> 把 dist/ 同步到仓库根目录
+```
+
+`scripts/sync-dist.mjs` 的作用是先清理旧的生成文件，再复制新的构建结果。
+
+这样做的好处是：你可以继续用 Astro 写组件和页面，同时 GitHub Pages 仍然能直接显示最终 HTML。
+
+后续 v0.2 或 v0.3 可以切换成 GitHub Actions 自动部署。那时你只需要 push 源码，GitHub 会自动 build，不一定还需要把生成后的 HTML 提交到根目录。

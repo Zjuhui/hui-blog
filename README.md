@@ -35,6 +35,14 @@ npm run build
 
 构建后，Astro 会把网站生成到 `dist/`。
 
+当前 GitHub Pages 仍然从仓库根目录发布，所以正式发布前推荐运行：
+
+```powershell
+npm run build:pages
+```
+
+这个命令会构建 Astro，并把 `dist/` 同步到仓库根目录。
+
 ## 代码结构
 
 ```text
@@ -72,6 +80,18 @@ src/pages/posts/*.astro
 
 ```text
 docs/homepage-learning.md
+```
+
+换电脑继续更新的步骤在：
+
+```text
+docs/update-from-another-computer.md
+```
+
+v0.2 计划在：
+
+```text
+docs/v0.2-plan.md
 ```
 
 ## GitHub Pages
