@@ -1,7 +1,9 @@
 import { getCollection } from "astro:content";
-import { readFile } from "node:fs/promises";
 import defaults from "../data/site.json";
 import { resolveAppearance } from "./appearance.mjs";
+import type { z } from "zod";
+import type { siteSchema } from "../../studio/content.mjs";
+type SiteSettings = z.infer<typeof siteSchema>;
 export type Locale = "zh" | "en";
 export const studioMode = process.env.BLOG_STUDIO === "1";
 export const copy = {
@@ -67,16 +69,24 @@ export function asset(src: string) {
     ? `${import.meta.env.BASE_URL.replace(/\/$/, "")}/${src.slice(10)}`
     : src;
 }
-export async function settings() {
+export async function settings(
+  url?: URL,
+): Promise<
+  SiteSettings & { appearance: ReturnType<typeof resolveAppearance> }
+> {
   if (studioMode) {
-    try {
-      const config = JSON.parse(
-        await readFile(".studio/site.json", "utf8"),
-      ) as typeof defaults;
-      return { ...config, appearance: resolveAppearance(config) };
-    } catch {}
+    const { previewSettings } = await import("../../studio/preview-state.mjs");
+    const config = (await previewSettings(
+      process.cwd(),
+      url,
+      defaults,
+    )) as SiteSettings;
+    return { ...config, appearance: resolveAppearance(config) };
   }
-  return { ...defaults, appearance: resolveAppearance(defaults) };
+  return {
+    ...(defaults as SiteSettings),
+    appearance: resolveAppearance(defaults),
+  };
 }
 export async function posts() {
   const published = await getCollection("posts");

@@ -49,7 +49,7 @@ const words = {
     heading: "首页标题",
     body: "介绍文字",
     about: "关于我",
-    appearance: "外观",
+    appearance: "视觉设计",
     accent: "强调色",
     cinnabar: "朱砂",
     sage: "青苔",
@@ -83,6 +83,7 @@ const words = {
     authRetry: "请检查网络或代理后点击刷新，无需因为连接失败重新登录。",
     authHint: "双击项目里的 GitHub Setup.cmd，完成一次登录，然后点击刷新。",
     authOk: "GitHub 已连接",
+    authChecking: "正在检查 GitHub 连接…",
     saveFirst: "离开前请先保存网站设置。",
     error: "未能完成操作",
     close: "关闭",
@@ -147,7 +148,7 @@ const words = {
     heading: "Home title",
     body: "Introduction",
     about: "About me",
-    appearance: "Appearance",
+    appearance: "Visual design",
     accent: "Accent color",
     cinnabar: "Cinnabar",
     sage: "Sage",
@@ -184,6 +185,7 @@ const words = {
     authHint:
       "Open GitHub Setup.cmd in the project, sign in once, then refresh.",
     authOk: "GitHub connected",
+    authChecking: "Checking GitHub connection…",
     saveFirst: "Save your site settings before leaving.",
     error: "Could not complete the action",
     close: "Close",
@@ -238,6 +240,7 @@ export default function Studio() {
   const [view, setView] = useSession("hui-view", "library");
   const [data, setData] = useState<any>(null);
   const [config, setConfig] = useState<any>(null);
+  const configVersion = useRef(0);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [busy, setBusy] = useState(false);
@@ -300,16 +303,20 @@ export default function Studio() {
   useEffect(() => {
     const phase = data?.publication?.phase;
     if (
+      !data?.auth?.checking &&
       !["building", "uploading", "deploying", "status-unavailable"].includes(
         phase,
       )
     )
       return;
-    const timer = setInterval(() => {
-      refresh().catch((e) => setError(e.message));
-    }, 12000);
+    const timer = setInterval(
+      () => {
+        refresh().catch((e) => setError(e.message));
+      },
+      data?.auth?.checking ? 2000 : 12000,
+    );
     return () => clearInterval(timer);
-  }, [data?.publication?.phase]);
+  }, [data?.publication?.phase, data?.auth?.checking]);
   useEffect(() => {
     const handler = (e: BeforeUnloadEvent) => {
       if (dirty) e.preventDefault();
@@ -355,24 +362,11 @@ export default function Studio() {
   ].includes(data?.publication?.phase);
   const selection = { slugs: selected, settings: selectSettings };
   function changeConfig(next: any) {
+    configVersion.current += 1;
     sessionStorage.setItem("hui-unsaved-settings", JSON.stringify(next));
     setConfig(next);
     setDirty(true);
     setNotice("");
-  }
-  function localized(
-    section: string,
-    locale: Lang,
-    key: string,
-    value: string,
-  ) {
-    changeConfig({
-      ...config,
-      [section]: {
-        ...config[section],
-        [locale]: { ...config[section][locale], [key]: value },
-      },
-    });
   }
   async function edit(slug: string, published: boolean) {
     sessionStorage.setItem("hui-editor", slug);
@@ -601,7 +595,7 @@ export default function Studio() {
                   <iframe
                     key={frameKey}
                     title={t.localPreview}
-                    src={previewPath}
+                    src={`${previewPath}?refresh=${frameKey}`}
                   />
                 </div>
               </>
@@ -615,6 +609,24 @@ export default function Studio() {
                     </p>
                     <h1>{view === "appearance" ? t.appearance : t.settings}</h1>
                   </div>
+                  {dirty && (
+                    <button
+                      className="outlined restore-settings"
+                      disabled={busy}
+                      onClick={() => {
+                        configVersion.current += 1;
+                        setConfig(data.settings);
+                        sessionStorage.removeItem("hui-unsaved-settings");
+                        setDirty(false);
+                        setError("");
+                        setNotice("");
+                      }}
+                    >
+                      {lang === "zh"
+                        ? "恢复已保存设置"
+                        : "Restore saved settings"}
+                    </button>
+                  )}
                   <button
                     disabled={
                       busy ||
@@ -624,185 +636,29 @@ export default function Studio() {
                     className="primary"
                     onClick={() =>
                       act(async () => {
+                        const version = configVersion.current;
                         await api("settings", config);
-                        sessionStorage.removeItem("hui-unsaved-settings");
-                        setDirty(false);
-                        setNotice("saved");
-                        await refresh();
+                        const next = await refresh();
+                        if (version === configVersion.current) {
+                          sessionStorage.removeItem("hui-unsaved-settings");
+                          setConfig(next.settings);
+                          setDirty(false);
+                          setNotice("saved");
+                        }
                       })
                     }
                   >
                     {t.save}
                   </button>
                 </div>
-                {view === "appearance" ? (
-                  <AppearancePanel
-                    config={config}
-                    savedConfig={data.settings}
-                    lang={lang}
-                    posts={data.posts}
-                    onChange={changeConfig}
-                  />
-                ) : (
-                  <>
-                    <div className="appearance-settings-link">
-                      <span>
-                        {lang === "zh"
-                          ? "风格、背景和字体在「外观」中调整。"
-                          : "Choose a style, background, and fonts in Appearance."}
-                      </span>
-                      <button
-                        className="outlined"
-                        onClick={() => navigate("appearance")}
-                      >
-                        {t.appearance} ↗
-                      </button>
-                    </div>
-                    <section className="settings-section">
-                      <h2>{t.intro}</h2>
-                      <div className="language-columns">
-                        {(["zh", "en"] as const).map((locale) => (
-                          <div key={locale}>
-                            <h3>{locale === "zh" ? "中文" : "English"}</h3>
-                            {(["eyebrow", "title", "body"] as const).map(
-                              (key) => (
-                                <label key={key}>
-                                  {key === "title"
-                                    ? t.heading
-                                    : key === "body"
-                                      ? t.body
-                                      : t.eyebrow}
-                                  <textarea
-                                    rows={key === "body" ? 4 : 2}
-                                    value={config.intro[locale][key]}
-                                    onChange={(e) =>
-                                      localized(
-                                        "intro",
-                                        locale,
-                                        key,
-                                        e.target.value,
-                                      )
-                                    }
-                                  />
-                                </label>
-                              ),
-                            )}
-                            <label>
-                              {t.about}
-                              <textarea
-                                rows={7}
-                                value={config.about[locale]}
-                                onChange={(e) =>
-                                  changeConfig({
-                                    ...config,
-                                    about: {
-                                      ...config.about,
-                                      [locale]: e.target.value,
-                                    },
-                                  })
-                                }
-                              />
-                            </label>
-                          </div>
-                        ))}
-                      </div>
-                    </section>
-                    <section className="settings-section">
-                      <h2>{t.quote}</h2>
-                      <label className="checkbox-label">
-                        <input
-                          type="checkbox"
-                          checked={config.showQuote}
-                          onChange={(e) =>
-                            changeConfig({
-                              ...config,
-                              showQuote: e.target.checked,
-                            })
-                          }
-                        />
-                        {t.showQuote}
-                      </label>
-                      <label>
-                        {t.quote}
-                        <textarea
-                          rows={2}
-                          value={config.quote}
-                          onChange={(e) =>
-                            changeConfig({ ...config, quote: e.target.value })
-                          }
-                        />
-                      </label>
-                    </section>
-                    <section className="settings-section">
-                      <h2>{t.links}</h2>
-                      {config.socialLinks.map((link: any, i: number) => (
-                        <div className="social-row" key={i}>
-                          <label>
-                            {t.linkLabel}
-                            <input
-                              value={link.label}
-                              onChange={(e) =>
-                                changeConfig({
-                                  ...config,
-                                  socialLinks: config.socialLinks.map(
-                                    (v: any, n: number) =>
-                                      n === i
-                                        ? { ...v, label: e.target.value }
-                                        : v,
-                                  ),
-                                })
-                              }
-                            />
-                          </label>
-                          <label>
-                            {t.linkUrl}
-                            <input
-                              type="url"
-                              value={link.url}
-                              onChange={(e) =>
-                                changeConfig({
-                                  ...config,
-                                  socialLinks: config.socialLinks.map(
-                                    (v: any, n: number) =>
-                                      n === i
-                                        ? { ...v, url: e.target.value }
-                                        : v,
-                                  ),
-                                })
-                              }
-                            />
-                          </label>
-                          <button
-                            onClick={() =>
-                              changeConfig({
-                                ...config,
-                                socialLinks: config.socialLinks.filter(
-                                  (_: any, n: number) => n !== i,
-                                ),
-                              })
-                            }
-                          >
-                            {t.remove}
-                          </button>
-                        </div>
-                      ))}
-                      <button
-                        className="outlined"
-                        onClick={() =>
-                          changeConfig({
-                            ...config,
-                            socialLinks: [
-                              ...config.socialLinks,
-                              { label: "", url: "" },
-                            ],
-                          })
-                        }
-                      >
-                        ＋ {t.addLink}
-                      </button>
-                    </section>
-                  </>
-                )}
+                <AppearancePanel
+                  config={config}
+                  savedConfig={data.settings}
+                  lang={lang}
+                  posts={data.posts}
+                  onChange={changeConfig}
+                  initialTab={view === "settings" ? "content" : "style"}
+                />
               </>
             )}
             {view === "publish" && (
@@ -828,13 +684,15 @@ export default function Studio() {
                 </div>
                 <div className={`auth-card ${data.auth.ok ? "connected" : ""}`}>
                   <strong>
-                    {data.auth.ok
-                      ? "✓ " + t.authOk
-                      : data.auth.unavailable
-                        ? t.authUnavailable
-                        : t.authNeeded}
+                    {data.auth.checking
+                      ? t.authChecking
+                      : data.auth.ok
+                        ? "✓ " + t.authOk
+                        : data.auth.unavailable
+                          ? t.authUnavailable
+                          : t.authNeeded}
                   </strong>
-                  {!data.auth.ok && (
+                  {!data.auth.ok && !data.auth.checking && (
                     <p>{data.auth.unavailable ? t.authRetry : t.authHint}</p>
                   )}
                 </div>

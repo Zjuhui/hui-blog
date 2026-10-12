@@ -2,9 +2,13 @@
 import '../styles/global.css';
 import { href, copy, studioMode, type Locale, type settings } from '../lib/site';
 import { appearanceVariables, appearanceAttributes } from '../lib/appearance.mjs';
+import { resolvePresentation } from '../lib/site-customization.mjs';
 interface Props { title: string; description: string; locale: Locale; page: string; counterpart: string; config: Awaited<ReturnType<typeof settings>> }
 const { title, description, locale, page, counterpart, config } = Astro.props;
-const t = copy[locale];
+const presentation = resolvePresentation(config);
+const { branding, footer } = presentation;
+const t = { ...copy[locale], ...presentation.text[locale] };
+const hasBrand = (branding.showMark && branding.mark) || (branding.showWordmark && branding.wordmark);
 const active = ['archive', 'research', 'life', 'post'].includes(page) ? 'archive' : page;
 const canonicalPath = Astro.url.pathname.replace(/^\/hui-blog\/en\//, '/hui-blog/');
 ---
@@ -21,13 +25,13 @@ const canonicalPath = Astro.url.pathname.replace(/^\/hui-blog\/en\//, '/hui-blog
     <a class="skip-link" href="#main">{t.skip}</a>
     {studioMode && <div class="preview-banner">{t.preview}<a href="/studio/">{t.studio} ↗</a></div>}
     <div class="site-shell">
-      <header class="site-header">
-        <a class="brand" href={href('', locale)} aria-label="Hui / 珲"><span class="seal">珲</span><span>Hui<span class="brand-dot">.</span></span></a>
-        <nav aria-label={locale === 'zh' ? '主导航' : 'Main navigation'}>{[['', 'home'], ['archive', 'writing'], ['works', 'works'], ['about', 'about']].map(([path, label]) => <a aria-current={active === path ? 'page' : undefined} href={href(path, locale)}>{t[label as keyof typeof t]}</a>)}</nav>
+      <header class:list={['site-header', { 'without-brand': !hasBrand }]}>
+        {hasBrand && <a class="brand" href={href('', locale)} aria-label={config.name} data-studio-section={studioMode ? 'branding' : undefined}>{branding.showMark && branding.mark && <span class="seal">{branding.mark}</span>}{branding.showWordmark && branding.wordmark && <span class="wordmark">{branding.wordmark}<span class="brand-dot">.</span></span>}</a>}
+        <nav aria-label={locale === 'zh' ? '主导航' : 'Main navigation'} data-studio-section={studioMode ? 'navigation' : undefined}>{[['', 'home'], ['archive', 'writing'], ['works', 'works'], ['about', 'about']].map(([path, label]) => <a aria-current={active === path ? 'page' : undefined} href={href(path, locale)}>{t[label as keyof typeof t]}</a>)}</nav>
         <a class="locale-switch" href={counterpart} aria-label={t.language} lang={locale === 'zh' ? 'en' : 'zh-CN'}>{locale === 'zh' ? 'EN' : '中文'} <span aria-hidden="true">↗</span></a>
       </header>
       <main id="main"><slot/></main>
-      <footer class="site-footer"><div><span class="footer-seal">珲</span><span>{t.footer}</span></div><div>{config.socialLinks.map(link => <a href={link.url}>{link.label} ↗</a>)}<span>© {new Date().getFullYear()} Hui</span></div></footer>
+      <footer class="site-footer" data-studio-section={studioMode ? 'footer' : undefined}><div>{footer.showMark && branding.mark && <span class="footer-seal">{branding.mark}</span>}{t.footer && <span>{t.footer}</span>}</div><div>{config.socialLinks.map(link => <a href={link.url}>{link.label} ↗</a>)}{footer.showCopyright && <span>© {new Date().getFullYear()} {branding.wordmark || config.name}</span>}</div></footer>
     </div>
   </body>
 </html>

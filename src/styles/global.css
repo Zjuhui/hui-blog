@@ -83,6 +83,22 @@ p {
   gap: 13px;
   font-family: Georgia, serif;
   font-size: 26px;
+  min-width: 0;
+  max-width: 45%;
+}
+.wordmark {
+  overflow-wrap: anywhere;
+}
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
 }
 .brand-dot {
   color: var(--accent);
@@ -90,7 +106,9 @@ p {
 .seal {
   display: grid;
   place-items: center;
-  width: 35px;
+  min-width: 35px;
+  padding-inline: 3px;
+  flex-shrink: 0;
   height: 39px;
   border: 1px solid var(--accent);
   border-radius: 3px;
@@ -103,12 +121,21 @@ p {
   display: flex;
   gap: 28px;
   margin-left: auto;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+.site-header.without-brand nav {
+  margin-left: 0;
+}
+.site-header.without-brand .locale-switch {
+  margin-left: auto;
 }
 .site-header nav a {
   font-size: 14px;
   color: var(--muted);
   position: relative;
   padding: 7px 0;
+  overflow-wrap: anywhere;
 }
 .site-header nav a:hover,
 .site-header nav a[aria-current] {
@@ -200,6 +227,7 @@ h1 {
   font-weight: 500;
   letter-spacing: 0.04em;
   margin: 0;
+  overflow-wrap: anywhere;
 }
 .section-count {
   margin-left: 12px;
@@ -273,6 +301,15 @@ h1 {
 .writing-section + .writing-section {
   margin-top: 50px;
 }
+.home-content > .writing-section:first-child {
+  padding-top: 48px;
+}
+.home-content > .writing-section:last-child {
+  padding-bottom: 56px;
+}
+.home-content:empty {
+  min-height: 35vh;
+}
 .endnote {
   display: flex;
   align-items: center;
@@ -308,6 +345,8 @@ h1 {
   display: flex;
   align-items: center;
   gap: 22px;
+  flex-wrap: wrap;
+  overflow-wrap: anywhere;
 }
 .site-footer a:hover {
   color: var(--accent);
@@ -517,9 +556,10 @@ blockquote {
   }
   .brand {
     font-size: 23px;
+    max-width: 78%;
   }
   .seal {
-    width: 29px;
+    min-width: 29px;
     height: 32px;
     font-size: 22px;
   }
@@ -532,6 +572,7 @@ blockquote {
   }
   .site-header nav a {
     font-size: 13px;
+    max-width: 100%;
   }
   .site-header nav a[aria-current]:after {
     bottom: -20px;
@@ -774,6 +815,13 @@ summary:focus-visible {
     gap: 26px;
     padding: 16px 0 24px;
     border: 0;
+  }
+  [data-navigation="sidebar"] .brand {
+    max-width: 100%;
+    flex-wrap: wrap;
+  }
+  [data-navigation="sidebar"] .site-header.without-brand .locale-switch {
+    margin-left: 0;
   }
   [data-navigation="sidebar"] .site-header nav {
     margin: 0;

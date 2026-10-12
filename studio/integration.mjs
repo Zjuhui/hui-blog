@@ -13,6 +13,11 @@ import {
   snapshotFingerprint,
 } from "./content.mjs";
 import { Publisher, authStatus } from "./publish.mjs";
+import {
+  createPreview,
+  getPreview,
+  createPreviewSynchronizer,
+} from "./preview-state.mjs";
 
 export function authorized(req, token) {
   const host = req.headers.host;
@@ -42,9 +47,19 @@ async function jsonBody(req) {
   return JSON.parse(Buffer.concat(chunks).toString() || "{}");
 }
 export default function studio() {
+  let synchronizePreview = async () => {};
+  let studioRoot;
   return {
     name: "hui-studio",
     hooks: {
+      "astro:route:setup": ({ route }) => {
+        if (
+          route.component
+            .replaceAll("\\", "/")
+            .endsWith("src/pages/[...path].astro")
+        )
+          route.prerender = false;
+      },
       "astro:config:setup": async ({
         injectRoute,
         injectScript,
@@ -52,6 +67,7 @@ export default function studio() {
         config,
       }) => {
         const root = fileURLToPath(config.root);
+        studioRoot = root;
         await init(root);
         injectScript("page", 'import "/studio/appearance-preview.ts";');
         injectRoute({
@@ -87,6 +103,51 @@ export default function studio() {
         } catch {}
         let lastPoll = 0,
           mutation = false;
+        let pollPending = false;
+        let auth = {
+          ok: false,
+          unavailable: true,
+          checking: true,
+          message: "Checking GitHub sign-in…",
+        };
+        let authPending = false,
+          authChecked = 0;
+        function refreshRemoteStatus() {
+          if (!authPending && Date.now() - authChecked > 30000) {
+            authPending = true;
+            auth = { ...auth, checking: true };
+            void authStatus(root)
+              .then((result) => {
+                auth = result;
+                authChecked = Date.now();
+              })
+              .catch(() => {
+                auth = {
+                  ok: false,
+                  unavailable: true,
+                  message: "GitHub could not be reached. Check the connection and refresh.",
+                };
+                authChecked = Date.now();
+              })
+              .finally(() => {
+                authPending = false;
+              });
+          }
+          if (
+            Date.now() - lastPoll > 10000 &&
+            !publisher.active &&
+            !pollPending
+          ) {
+            lastPoll = Date.now();
+            pollPending = true;
+            void publisher
+              .pollDeployment()
+              .catch(() => {})
+              .finally(() => {
+                pollPending = false;
+              });
+          }
+        }
         updateConfig({
           vite: {
             plugins: [
@@ -118,6 +179,7 @@ export default function studio() {
                       res.setHeader("Cache-Control", "no-store");
                     }
                     const controlled =
+                      url.searchParams.has("studioPreview") ||
                       pathname.startsWith("/__studio/") ||
                       pathname.startsWith("/api/keystatic/") ||
                       pathname.startsWith("/keystatic");
@@ -125,6 +187,41 @@ export default function studio() {
                       res.statusCode = 403;
                       res.end("Open /studio/ first.");
                       return;
+                    }
+                    if (url.searchParams.has("studioPreview")) {
+                      try {
+                        getPreview(url.searchParams.get("studioPreview"));
+                      } catch (error) {
+                        res.statusCode = 410;
+                        res.setHeader(
+                          "Content-Type",
+                          "text/plain; charset=utf-8",
+                        );
+                        res.setHeader("Cache-Control", "no-store");
+                        res.end(error.message);
+                        return;
+                      }
+                    }
+                    if (
+                      req.method === "GET" &&
+                      /^\/(?:en\/)?(?:(?:archive|research|life|works|about)\/?|posts\/[a-z0-9-]+\/?)?$/.test(
+                        pathname,
+                      )
+                    ) {
+                      res.setHeader("Cache-Control", "no-store");
+                      try {
+                        await synchronizePreview();
+                      } catch (error) {
+                        res.statusCode = 500;
+                        res.setHeader(
+                          "Content-Type",
+                          "text/plain; charset=utf-8",
+                        );
+                        res.end(
+                          `Cannot render the latest saved article: ${error.message}`,
+                        );
+                        return;
+                      }
                     }
                     if (
                       pathname.startsWith("/hui-blog/media/") ||
@@ -153,6 +250,7 @@ export default function studio() {
                           `image/${ext === "jpg" ? "jpeg" : ext}`,
                         );
                         res.setHeader("X-Content-Type-Options", "nosniff");
+                        res.setHeader("Cache-Control", "no-store");
                         res.end(await readFile(file));
                       } catch {
                         res.statusCode = 404;
@@ -169,17 +267,11 @@ export default function studio() {
                         req.method === "GET" &&
                         pathname === "/__studio/state"
                       ) {
-                        if (
-                          Date.now() - lastPoll > 10000 &&
-                          !publisher.active
-                        ) {
-                          lastPoll = Date.now();
-                          await publisher.pollDeployment();
-                        }
+                        refreshRemoteStatus();
                         return send({
                           ...(await library(root)),
                           publication: publisher.state,
-                          auth: await authStatus(root),
+                          auth,
                         });
                       }
                       if (req.method !== "POST") {
@@ -188,6 +280,8 @@ export default function studio() {
                       }
                       if (req.headers.origin !== `http://${req.headers.host}`)
                         throw new Error("Origin required.");
+                      if (pathname === "/__studio/preview")
+                        return send({ id: createPreview(await jsonBody(req)) });
                       if (mutation)
                         throw new Error(
                           "Another change is being saved. Try again.",
@@ -239,6 +333,13 @@ export default function studio() {
               },
             ],
           },
+        });
+      },
+      "astro:server:setup": ({ refreshContent }) => {
+        synchronizePreview = createPreviewSynchronizer(studioRoot, async () => {
+          // Astro's normal file watcher saves its content store after a debounce.
+          // Await the supported refresh hook before serving a saved preview.
+          await refreshContent({});
         });
       },
     },

@@ -32,7 +32,7 @@ for (const file of files) {
   if (!/\.(html|js|json|css)$/.test(file)) continue;
   const source = await readFile(file, "utf8");
   assert(
-    !/hui_studio=|hui-appearance-preview|__studio\/publish|\.studio\/posts|Local preview · includes|本地预览 · 包含未发布/.test(
+    !/hui_studio=|hui-appearance-preview|data-studio-section|__studio\/publish|\.studio\/posts|Local preview · includes|本地预览 · 包含未发布/.test(
       source,
     ),
     `Local-only code leaked into ${relative}`,

@@ -29,7 +29,7 @@ const original = await readFile(
   "utf8",
 );
 test("legacy settings retain their named accent; presets have readable foregrounds", () => {
-  assert.deepEqual(resolveAppearance(JSON.parse(original)), defaultAppearance);
+  assert.deepEqual(resolveAppearance({ accent: "cinnabar" }), defaultAppearance);
   assert.equal(resolveAppearance({ accent: "sage" }).accent, "#45624e");
   for (const preset of allPresets) {
     const a = appearanceSchema.parse(preset.values);

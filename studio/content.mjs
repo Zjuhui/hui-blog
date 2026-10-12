@@ -13,6 +13,7 @@ import { createHash, randomUUID } from "node:crypto";
 import matter from "gray-matter";
 import { z } from "zod";
 import { appearanceSchema, contrastIssues } from "../src/lib/appearance.mjs";
+import { presentationSchema } from "../src/lib/site-customization.mjs";
 
 export const postSchema = z.object({
   title: z.string().trim().min(1).max(200),
@@ -35,6 +36,7 @@ const intro = z.object({
 export const siteSchema = z.object({
   name: z.string().min(1).max(40),
   accent: z.enum(["cinnabar", "sage", "ink"]),
+  presentation: presentationSchema.optional(),
   appearance: appearanceSchema
     .superRefine((value, ctx) => {
       for (const key of contrastIssues(value))

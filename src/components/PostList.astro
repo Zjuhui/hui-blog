@@ -1,8 +1,8 @@
 ---
 import { copy, href, dateLabel, type Locale, type posts } from '../lib/site';
-interface Props { entries: Awaited<ReturnType<typeof posts>>; locale: Locale }
-const { entries, locale } = Astro.props;
-const t = copy[locale];
+interface Props { entries: Awaited<ReturnType<typeof posts>>; locale: Locale; labels?: Partial<typeof copy.zh> }
+const { entries, locale, labels } = Astro.props;
+const t = { ...copy[locale], ...labels };
 ---
 {entries.length ? <ol class="post-list">{entries.map((post, i) => <li><a class="post-row" href={href(`posts/${post.id}`, locale)}>
   <span class="post-number" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>
