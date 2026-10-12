@@ -9,6 +9,7 @@ import {
   readdir,
 } from "node:fs/promises";
 import path from "node:path";
+import os from "node:os";
 import { randomUUID } from "node:crypto";
 import {
   collectSelection,
@@ -219,7 +220,15 @@ export class Publisher {
       throw new Error(
         "Application source has uncommitted changes. Finish those changes before publishing articles.",
       );
-    const folder = within(path.join(root, ".studio/releases"), this.state.id);
+    // The project may live on exFAT, where junctions are unavailable. Windows'
+    // per-user temporary volume supports the dependency link for isolated builds.
+    const releaseRoot = path.join(
+      os.tmpdir(),
+      "hui-blog-publications",
+      hash(root).slice(0, 16),
+    );
+    await mkdir(releaseRoot, { recursive: true });
+    const folder = within(releaseRoot, this.state.id);
     await this.runGit(root, "worktree", "add", "--detach", folder, remote);
     try {
       await validateSnapshot(folder, selected);
