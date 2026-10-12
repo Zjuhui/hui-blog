@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import "./studio.css";
+import AppearancePanel from "./AppearancePanel";
+import { contrastIssues, resolveAppearance } from "../src/lib/appearance.mjs";
 
 type Lang = "zh" | "en";
 const words = {
@@ -274,7 +276,7 @@ export default function Studio() {
     }
   }
   function navigate(next: string) {
-    if (dirty && view === "settings" && next !== "settings") {
+    if (dirty && !["settings", "appearance"].includes(next)) {
       setError(t.saveFirst);
       return;
     }
@@ -397,14 +399,23 @@ export default function Studio() {
         <p className="sidebar-caption">{t.desk}</p>
         <nav aria-label={t.desk}>
           {(
-            ["library", "settings", "preview", "publish", "guide"] as const
+            [
+              "library",
+              "appearance",
+              "settings",
+              "preview",
+              "publish",
+              "guide",
+            ] as const
           ).map((key, i) => (
             <button
               key={key}
               onClick={() => navigate(key)}
               aria-current={view === key ? "page" : undefined}
             >
-              <span aria-hidden="true">{["▤", "◈", "◫", "↗", "?"][i]}</span>
+              <span aria-hidden="true">
+                {["▤", "◐", "◈", "◫", "↗", "?"][i]}
+              </span>
               {t[key]}
               {key === "publish" && pending.length > 0 && (
                 <small>{pending.length}</small>
@@ -424,7 +435,7 @@ export default function Studio() {
         </div>
       </aside>
       <main
-        className={`studio-main ${view === "editor" || view === "preview" ? "wide" : ""}`}
+        className={`studio-main ${["editor", "preview", "appearance"].includes(view) ? "wide" : ""}`}
       >
         <header className="studio-topbar">
           <span>{t.subtitle}</span>
@@ -595,17 +606,21 @@ export default function Studio() {
                 </div>
               </>
             )}
-            {view === "settings" && config && (
+            {["settings", "appearance"].includes(view) && config && (
               <>
-                <div className="studio-heading">
+                <div className="studio-heading settings-heading">
                   <div>
                     <p className="overline">
                       {lang === "zh" ? "自己的小空间" : "MAKE IT YOURS"}
                     </p>
-                    <h1>{t.settings}</h1>
+                    <h1>{view === "appearance" ? t.appearance : t.settings}</h1>
                   </div>
                   <button
-                    disabled={busy || !dirty}
+                    disabled={
+                      busy ||
+                      !dirty ||
+                      contrastIssues(resolveAppearance(config)).length > 0
+                    }
                     className="primary"
                     onClick={() =>
                       act(async () => {
@@ -620,156 +635,174 @@ export default function Studio() {
                     {t.save}
                   </button>
                 </div>
-                <section className="settings-section">
-                  <h2>{t.intro}</h2>
-                  <div className="language-columns">
-                    {(["zh", "en"] as const).map((locale) => (
-                      <div key={locale}>
-                        <h3>{locale === "zh" ? "中文" : "English"}</h3>
-                        {(["eyebrow", "title", "body"] as const).map((key) => (
-                          <label key={key}>
-                            {key === "title"
-                              ? t.heading
-                              : key === "body"
-                                ? t.body
-                                : t.eyebrow}
-                            <textarea
-                              rows={key === "body" ? 4 : 2}
-                              value={config.intro[locale][key]}
+                {view === "appearance" ? (
+                  <AppearancePanel
+                    config={config}
+                    savedConfig={data.settings}
+                    lang={lang}
+                    posts={data.posts}
+                    onChange={changeConfig}
+                  />
+                ) : (
+                  <>
+                    <div className="appearance-settings-link">
+                      <span>
+                        {lang === "zh"
+                          ? "风格、背景和字体在「外观」中调整。"
+                          : "Choose a style, background, and fonts in Appearance."}
+                      </span>
+                      <button
+                        className="outlined"
+                        onClick={() => navigate("appearance")}
+                      >
+                        {t.appearance} ↗
+                      </button>
+                    </div>
+                    <section className="settings-section">
+                      <h2>{t.intro}</h2>
+                      <div className="language-columns">
+                        {(["zh", "en"] as const).map((locale) => (
+                          <div key={locale}>
+                            <h3>{locale === "zh" ? "中文" : "English"}</h3>
+                            {(["eyebrow", "title", "body"] as const).map(
+                              (key) => (
+                                <label key={key}>
+                                  {key === "title"
+                                    ? t.heading
+                                    : key === "body"
+                                      ? t.body
+                                      : t.eyebrow}
+                                  <textarea
+                                    rows={key === "body" ? 4 : 2}
+                                    value={config.intro[locale][key]}
+                                    onChange={(e) =>
+                                      localized(
+                                        "intro",
+                                        locale,
+                                        key,
+                                        e.target.value,
+                                      )
+                                    }
+                                  />
+                                </label>
+                              ),
+                            )}
+                            <label>
+                              {t.about}
+                              <textarea
+                                rows={7}
+                                value={config.about[locale]}
+                                onChange={(e) =>
+                                  changeConfig({
+                                    ...config,
+                                    about: {
+                                      ...config.about,
+                                      [locale]: e.target.value,
+                                    },
+                                  })
+                                }
+                              />
+                            </label>
+                          </div>
+                        ))}
+                      </div>
+                    </section>
+                    <section className="settings-section">
+                      <h2>{t.quote}</h2>
+                      <label className="checkbox-label">
+                        <input
+                          type="checkbox"
+                          checked={config.showQuote}
+                          onChange={(e) =>
+                            changeConfig({
+                              ...config,
+                              showQuote: e.target.checked,
+                            })
+                          }
+                        />
+                        {t.showQuote}
+                      </label>
+                      <label>
+                        {t.quote}
+                        <textarea
+                          rows={2}
+                          value={config.quote}
+                          onChange={(e) =>
+                            changeConfig({ ...config, quote: e.target.value })
+                          }
+                        />
+                      </label>
+                    </section>
+                    <section className="settings-section">
+                      <h2>{t.links}</h2>
+                      {config.socialLinks.map((link: any, i: number) => (
+                        <div className="social-row" key={i}>
+                          <label>
+                            {t.linkLabel}
+                            <input
+                              value={link.label}
                               onChange={(e) =>
-                                localized("intro", locale, key, e.target.value)
+                                changeConfig({
+                                  ...config,
+                                  socialLinks: config.socialLinks.map(
+                                    (v: any, n: number) =>
+                                      n === i
+                                        ? { ...v, label: e.target.value }
+                                        : v,
+                                  ),
+                                })
                               }
                             />
                           </label>
-                        ))}
-                        <label>
-                          {t.about}
-                          <textarea
-                            rows={7}
-                            value={config.about[locale]}
-                            onChange={(e) =>
+                          <label>
+                            {t.linkUrl}
+                            <input
+                              type="url"
+                              value={link.url}
+                              onChange={(e) =>
+                                changeConfig({
+                                  ...config,
+                                  socialLinks: config.socialLinks.map(
+                                    (v: any, n: number) =>
+                                      n === i
+                                        ? { ...v, url: e.target.value }
+                                        : v,
+                                  ),
+                                })
+                              }
+                            />
+                          </label>
+                          <button
+                            onClick={() =>
                               changeConfig({
                                 ...config,
-                                about: {
-                                  ...config.about,
-                                  [locale]: e.target.value,
-                                },
+                                socialLinks: config.socialLinks.filter(
+                                  (_: any, n: number) => n !== i,
+                                ),
                               })
                             }
-                          />
-                        </label>
-                      </div>
-                    ))}
-                  </div>
-                </section>
-                <section className="settings-section">
-                  <h2>{t.appearance}</h2>
-                  <p>{t.accent}</p>
-                  <div className="swatches">
-                    {(["cinnabar", "sage", "ink"] as const).map((accent) => (
+                          >
+                            {t.remove}
+                          </button>
+                        </div>
+                      ))}
                       <button
-                        key={accent}
-                        aria-pressed={config.accent === accent}
-                        onClick={() => changeConfig({ ...config, accent })}
-                      >
-                        <span
-                          style={{
-                            background: {
-                              cinnabar: "#9e4337",
-                              sage: "#45624e",
-                              ink: "#426078",
-                            }[accent],
-                          }}
-                        />
-                        {t[accent]}
-                      </button>
-                    ))}
-                  </div>
-                  <label className="checkbox-label">
-                    <input
-                      type="checkbox"
-                      checked={config.showQuote}
-                      onChange={(e) =>
-                        changeConfig({ ...config, showQuote: e.target.checked })
-                      }
-                    />
-                    {t.showQuote}
-                  </label>
-                  <label>
-                    {t.quote}
-                    <textarea
-                      rows={2}
-                      value={config.quote}
-                      onChange={(e) =>
-                        changeConfig({ ...config, quote: e.target.value })
-                      }
-                    />
-                  </label>
-                </section>
-                <section className="settings-section">
-                  <h2>{t.links}</h2>
-                  {config.socialLinks.map((link: any, i: number) => (
-                    <div className="social-row" key={i}>
-                      <label>
-                        {t.linkLabel}
-                        <input
-                          value={link.label}
-                          onChange={(e) =>
-                            changeConfig({
-                              ...config,
-                              socialLinks: config.socialLinks.map(
-                                (v: any, n: number) =>
-                                  n === i ? { ...v, label: e.target.value } : v,
-                              ),
-                            })
-                          }
-                        />
-                      </label>
-                      <label>
-                        {t.linkUrl}
-                        <input
-                          type="url"
-                          value={link.url}
-                          onChange={(e) =>
-                            changeConfig({
-                              ...config,
-                              socialLinks: config.socialLinks.map(
-                                (v: any, n: number) =>
-                                  n === i ? { ...v, url: e.target.value } : v,
-                              ),
-                            })
-                          }
-                        />
-                      </label>
-                      <button
+                        className="outlined"
                         onClick={() =>
                           changeConfig({
                             ...config,
-                            socialLinks: config.socialLinks.filter(
-                              (_: any, n: number) => n !== i,
-                            ),
+                            socialLinks: [
+                              ...config.socialLinks,
+                              { label: "", url: "" },
+                            ],
                           })
                         }
                       >
-                        {t.remove}
+                        ＋ {t.addLink}
                       </button>
-                    </div>
-                  ))}
-                  <button
-                    className="outlined"
-                    onClick={() =>
-                      changeConfig({
-                        ...config,
-                        socialLinks: [
-                          ...config.socialLinks,
-                          { label: "", url: "" },
-                        ],
-                      })
-                    }
-                  >
-                    ＋ {t.addLink}
-                  </button>
-                </section>
+                    </section>
+                  </>
+                )}
               </>
             )}
             {view === "publish" && (

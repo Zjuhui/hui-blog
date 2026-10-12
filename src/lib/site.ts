@@ -1,6 +1,7 @@
 import { getCollection } from "astro:content";
 import { readFile } from "node:fs/promises";
 import defaults from "../data/site.json";
+import { resolveAppearance } from "./appearance.mjs";
 export type Locale = "zh" | "en";
 export const studioMode = process.env.BLOG_STUDIO === "1";
 export const copy = {
@@ -69,12 +70,13 @@ export function asset(src: string) {
 export async function settings() {
   if (studioMode) {
     try {
-      return JSON.parse(
+      const config = JSON.parse(
         await readFile(".studio/site.json", "utf8"),
       ) as typeof defaults;
+      return { ...config, appearance: resolveAppearance(config) };
     } catch {}
   }
-  return defaults;
+  return { ...defaults, appearance: resolveAppearance(defaults) };
 }
 export async function posts() {
   const published = await getCollection("posts");

@@ -1,8 +1,15 @@
 import { readFile, readdir, access } from "node:fs/promises";
 import path from "node:path";
 import assert from "node:assert/strict";
+import {
+  resolveAppearance,
+  appearanceVariables,
+} from "../src/lib/appearance.mjs";
 
 const root = path.resolve("dist");
+const appearance = resolveAppearance(
+  JSON.parse(await readFile("src/data/site.json", "utf8")),
+);
 async function walk(folder) {
   const output = [];
   for (const entry of await readdir(folder, { withFileTypes: true })) {
@@ -24,12 +31,29 @@ for (const file of files) {
   if (!/\.(html|js|json|css)$/.test(file)) continue;
   const source = await readFile(file, "utf8");
   assert(
-    !/hui_studio=|__studio\/publish|\.studio\/posts|Local preview · includes|本地预览 · 包含未发布/.test(
+    !/hui_studio=|hui-appearance-preview|__studio\/publish|\.studio\/posts|Local preview · includes|本地预览 · 包含未发布/.test(
       source,
     ),
     `Local-only code leaked into ${relative}`,
   );
   if (!file.endsWith(".html")) continue;
+  assert(
+    source.includes(`data-layout="${appearance.layout}"`),
+    `Appearance layout missing in ${relative}`,
+  );
+  for (const key of [
+    "--paper",
+    "--ink",
+    "--accent",
+    "--reading-size",
+    "--reading-width",
+    "--reading-line-height",
+  ]) {
+    assert(
+      source.includes(`${key}:${appearanceVariables(appearance)[key]}`),
+      `Appearance ${key} missing in ${relative}`,
+    );
+  }
   const english = relative.startsWith("en/");
   assert(
     source.includes(`lang="${english ? "en" : "zh-CN"}"`),

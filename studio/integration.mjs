@@ -45,9 +45,15 @@ export default function studio() {
   return {
     name: "hui-studio",
     hooks: {
-      "astro:config:setup": async ({ injectRoute, updateConfig, config }) => {
+      "astro:config:setup": async ({
+        injectRoute,
+        injectScript,
+        updateConfig,
+        config,
+      }) => {
         const root = fileURLToPath(config.root);
         await init(root);
+        injectScript("page", 'import "/studio/appearance-preview.ts";');
         injectRoute({
           pattern: "/studio",
           entrypoint: fileURLToPath(

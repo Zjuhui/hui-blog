@@ -12,6 +12,7 @@ import path from "node:path";
 import { createHash, randomUUID } from "node:crypto";
 import matter from "gray-matter";
 import { z } from "zod";
+import { appearanceSchema, contrastIssues } from "../src/lib/appearance.mjs";
 
 export const postSchema = z.object({
   title: z.string().trim().min(1).max(200),
@@ -34,6 +35,17 @@ const intro = z.object({
 export const siteSchema = z.object({
   name: z.string().min(1).max(40),
   accent: z.enum(["cinnabar", "sage", "ink"]),
+  appearance: appearanceSchema
+    .superRefine((value, ctx) => {
+      for (const key of contrastIssues(value))
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: [key],
+          message:
+            "Choose colors with at least 4.5:1 contrast against the background.",
+        });
+    })
+    .optional(),
   intro: z.object({ zh: intro, en: intro }),
   about: z.object({ zh: z.string().max(10000), en: z.string().max(10000) }),
   quote: z.string().max(500),
