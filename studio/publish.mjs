@@ -1,12 +1,16 @@
 import { spawn } from "node:child_process";
 import {
   mkdir,
+  mkdtemp,
   readFile,
   writeFile,
   symlink,
   unlink,
   access,
   readdir,
+  rm,
+  lstat,
+  realpath,
 } from "node:fs/promises";
 import path from "node:path";
 import os from "node:os";
@@ -164,6 +168,56 @@ export async function validateSnapshot(folder, selected) {
     await writeFile(target, bytes);
   }
 }
+
+async function createPublicationClone(root, folder, baseline, runGit) {
+  // A linked worktree still needs writable metadata in the original .git.
+  // Copy committed Git state into an independent repository instead. In
+  // particular, local drafts and untracked application files are not copied.
+  await runGit(
+    root,
+    "clone",
+    "--no-hardlinks",
+    "--no-checkout",
+    "--",
+    root,
+    folder,
+  );
+  const origin = await runGit(root, "remote", "get-url", "origin");
+  const pushOrigin = await runGit(root, "remote", "get-url", "--push", "origin");
+  // A local clone initially points back to root. Never push the publication
+  // there: preserve the project's actual fetch and push destinations.
+  await runGit(folder, "remote", "set-url", "origin", origin);
+  await runGit(folder, "remote", "set-url", "--push", "origin", pushOrigin);
+  for (const key of ["user.name", "user.email", "http.proxy", "http.version"]) {
+    let value;
+    try {
+      value = await runGit(root, "config", "--get", key);
+    } catch {
+      // These settings may be absent; Git then uses its normal defaults.
+      continue;
+    }
+    await runGit(folder, "config", "--local", key, value);
+  }
+  await runGit(folder, "checkout", "--detach", baseline);
+}
+
+async function removePublicationClone(releaseRoot, folder) {
+  // Only delete the exact temporary directory created for this publication.
+  const parent = path.resolve(releaseRoot);
+  const target = path.resolve(folder);
+  if (
+    path.dirname(target) !== parent ||
+    !/^snapshot-[a-zA-Z0-9]+$/.test(path.basename(target))
+  )
+    throw new Error("Invalid publication cleanup path.");
+  const stat = await lstat(target);
+  if (!stat.isDirectory() || stat.isSymbolicLink())
+    throw new Error("Invalid publication directory.");
+  if (path.dirname(await realpath(target)) !== (await realpath(parent)))
+    throw new Error("Publication directory escapes its temporary parent.");
+  await rm(target, { recursive: true, force: true, maxRetries: 3 });
+}
+
 export class Publisher {
   constructor(root, dependencies = {}) {
     this.root = root;
@@ -238,15 +292,17 @@ export class Publisher {
       hash(root).slice(0, 16),
     );
     await mkdir(releaseRoot, { recursive: true });
-    const folder = within(releaseRoot, this.state.id);
-    await this.runGit(root, "worktree", "add", "--detach", folder, remote);
+    const folder = await mkdtemp(path.join(releaseRoot, "snapshot-"));
+    let dependencyLink = false;
     try {
+      await createPublicationClone(root, folder, remote, this.runGit);
       await validateSnapshot(folder, selected);
       await symlink(
         path.join(root, "node_modules"),
         path.join(folder, "node_modules"),
         process.platform === "win32" ? "junction" : "dir",
       );
+      dependencyLink = true;
       await this.run(process.execPath, ["scripts/build.mjs"], folder, {
         timeout: 180000,
       });
@@ -296,14 +352,21 @@ export class Publisher {
       );
       await this.pollDeployment();
     } finally {
-      // Unlink the junction itself before Git cleans the isolated checkout.
-      try {
-        await unlink(path.join(folder, "node_modules"));
-      } catch {}
-      // This exact managed worktree is retained if removal fails, never recursively delete arbitrary paths.
-      try {
-        await this.runGit(root, "worktree", "remove", "--force", folder);
-      } catch {}
+      // Unlink the dependency junction itself before removing the clone. If
+      // unlink fails, retain the clone rather than risk the shared dependencies.
+      let canRemove = true;
+      if (dependencyLink) {
+        try {
+          await unlink(path.join(folder, "node_modules"));
+        } catch {
+          canRemove = false;
+        }
+      }
+      if (canRemove) {
+        try {
+          await removePublicationClone(releaseRoot, folder);
+        } catch {}
+      }
     }
   }
   async pollDeployment() {

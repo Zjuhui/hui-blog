@@ -1,6 +1,13 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { mkdtemp, mkdir, writeFile, readFile, rm } from "node:fs/promises";
+import {
+  mkdtemp,
+  mkdir,
+  writeFile,
+  readFile,
+  rm,
+  lstat,
+} from "node:fs/promises";
 import path from "node:path";
 import os from "node:os";
 import {
@@ -149,6 +156,144 @@ test("successful publication pushes selected snapshot and preserves private draf
   assert.match(
     await readFile(path.join(root, ".studio/posts/private.mdoc"), "utf8"),
     /PRIVATE/,
+  );
+});
+
+test("publication uses an independent clone when worktree metadata is inaccessible", async (t) => {
+  const { root } = await fixture(t);
+  const commands = [];
+  const run = fakeCommands();
+  let checkedClone = false;
+  const p = new Publisher(root, {
+    git: async (cwd, ...args) => {
+      commands.push(args);
+      if (args[0] === "worktree")
+        throw new Error("fatal: .git/worktrees: Permission denied");
+      return git(cwd, ...args);
+    },
+    command: async (bin, args, cwd, options) => {
+      if (args[0] === "scripts/build.mjs") {
+        assert.notEqual(path.resolve(cwd), path.resolve(root));
+        assert.equal((await lstat(path.join(cwd, ".git"))).isDirectory(), true);
+        const common = await git(cwd, "rev-parse", "--git-common-dir");
+        assert.equal(path.resolve(cwd, common), path.join(cwd, ".git"));
+        checkedClone = true;
+      }
+      return run(bin, args, cwd, options);
+    },
+  });
+  await p.start({ slugs: ["example"] });
+  await p.task;
+  assert.equal(p.state.phase, "successful", p.state.message);
+  assert.equal(checkedClone, true);
+  assert.equal(
+    commands.some((args) => args[0] === "worktree"),
+    false,
+  );
+  assert.match(
+    await git(root, "show", "origin/main:src/content/posts/example.mdoc"),
+    /Selected revision/,
+  );
+});
+
+test("isolated publication preserves project connection settings and local author identity", async (t) => {
+  const { root } = await fixture(t);
+  // The fixture's bare origin uses file transport, so these HTTP settings are
+  // inspected without contacting a proxy or an external service.
+  const config = {
+    "http.proxy": "http://127.0.0.1:1",
+    "http.version": "HTTP/1.1",
+    "user.name": "Local Studio Author",
+    "user.email": "local-studio@example.test",
+  };
+  for (const [key, value] of Object.entries(config))
+    await git(root, "config", "--local", key, value);
+  const run = fakeCommands();
+  let checkedConfig = false;
+  const p = new Publisher(root, {
+    command: async (bin, args, cwd, options) => {
+      if (args[0] === "scripts/build.mjs") {
+        for (const [key, expected] of Object.entries(config))
+          assert.equal(await git(cwd, "config", "--get", key), expected, key);
+        checkedConfig = true;
+      }
+      return run(bin, args, cwd, options);
+    },
+  });
+  await p.start({ slugs: ["example"] });
+  await p.task;
+  assert.equal(p.state.phase, "successful", p.state.message);
+  assert.equal(checkedConfig, true);
+  assert.equal(
+    await git(root, "log", "-1", "--format=%an <%ae>"),
+    "Local Studio Author <local-studio@example.test>",
+  );
+});
+
+test("failed isolated builds preserve origin targets and omit private media before cleanup", async (t) => {
+  const { root, remote, temp } = await fixture(t);
+  const pushRemote = path.join(temp, "publication.git");
+  await command(
+    "git",
+    ["init", "--bare", "--initial-branch=main", pushRemote],
+    temp,
+  );
+  await git(root, "push", pushRemote, "main");
+  await git(root, "remote", "set-url", "--push", "origin", pushRemote);
+  const before = await git(root, "rev-parse", "HEAD");
+  await mkdir(path.join(root, ".studio/media"), { recursive: true });
+  await writeFile(path.join(root, ".studio/media/private-only.png"), "PRIVATE");
+  await writeFile(
+    path.join(root, ".studio/posts/private.mdoc"),
+    sample + "\n![Private](/hui-blog/media/private-only.png)\n",
+  );
+  await writeFile(path.join(root, "node_modules/keep.txt"), "dependency");
+  const run = fakeCommands();
+  let isolatedFolder;
+  const p = new Publisher(root, {
+    command: async (bin, args, cwd, options) => {
+      if (args[0] === "scripts/build.mjs") {
+        isolatedFolder = cwd;
+        assert.equal(await git(cwd, "remote", "get-url", "origin"), remote);
+        assert.equal(
+          await git(cwd, "remote", "get-url", "--push", "origin"),
+          pushRemote,
+        );
+        await assert.rejects(lstat(path.join(cwd, ".studio")), {
+          code: "ENOENT",
+        });
+        await assert.rejects(
+          lstat(path.join(cwd, "public/media/private-only.png")),
+          {
+            code: "ENOENT",
+          },
+        );
+        throw new Error("Build failed after checking isolated files");
+      }
+      return run(bin, args, cwd, options);
+    },
+  });
+  await p.start({ slugs: ["example"] });
+  await p.task;
+  assert.equal(p.state.phase, "failed");
+  assert.match(p.state.message, /Build failed after checking isolated files/);
+  assert.ok(isolatedFolder);
+  await assert.rejects(lstat(isolatedFolder), { code: "ENOENT" });
+  assert.equal(await git(root, "rev-parse", "HEAD"), before);
+  assert.equal(await git(remote, "rev-parse", "main"), before);
+  assert.equal(await git(pushRemote, "rev-parse", "main"), before);
+  assert.equal(await git(root, "remote", "get-url", "origin"), remote);
+  assert.equal(
+    await git(root, "remote", "get-url", "--push", "origin"),
+    pushRemote,
+  );
+  assert.equal(
+    await readFile(path.join(root, ".studio/media/private-only.png"), "utf8"),
+    "PRIVATE",
+  );
+  assert.equal(
+    await readFile(path.join(root, "node_modules/keep.txt"), "utf8"),
+    "dependency",
   );
 });
 test("failed builds never push and keep working copies", async (t) => {
