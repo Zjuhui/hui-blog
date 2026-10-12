@@ -2,8 +2,16 @@
   "name": "珲",
   "accent": "cinnabar",
   "intro": {
-    "zh": { "eyebrow": "一份慢慢生长的个人记录", "title": "科研之外，生活之中。", "body": "我是珲。在这里记录研究中的问题、生活里的片刻，以及一路做过的东西。先写，再生长。" },
-    "en": { "eyebrow": "A notebook, growing over time", "title": "A little research.\nA little life.", "body": "I'm Hui. This is a place for questions from research, moments from everyday life, and things I make along the way. Write first. Let it grow." }
+    "zh": {
+      "eyebrow": "一份慢慢生长的个人记录",
+      "title": "科研之外，生活之中。",
+      "body": "我是珲。在这里记录研究中的问题、生活里的片刻，以及一路做过的东西。先写，再生长。"
+    },
+    "en": {
+      "eyebrow": "A notebook, growing over time",
+      "title": "A little research.\nA little life.",
+      "body": "I'm Hui. This is a place for questions from research, moments from everyday life, and things I make along the way. Write first. Let it grow."
+    }
   },
   "about": {
     "zh": "我想要一个自己的空间，用来放下那些不适合只留在聊天窗口、实验记录或者社交媒体里的东西。\n\n这里有科研记录、生活随笔和作品。不是每个问题都有答案，也不是每段记录都需要结论。",
@@ -11,5 +19,10 @@
   },
   "quote": "If You Are Nothing Without AI, Then You Shouldn't Have It!",
   "showQuote": false,
-  "socialLinks": [{ "label": "GitHub", "url": "https://github.com/Zjuhui" }]
+  "socialLinks": [
+    {
+      "label": "GitHub",
+      "url": "https://github.com/Zjuhui"
+    }
+  ]
 }
