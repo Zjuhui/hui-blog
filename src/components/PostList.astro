@@ -1,0 +1,11 @@
+---
+import { copy, href, dateLabel, type Locale, type posts } from '../lib/site';
+interface Props { entries: Awaited<ReturnType<typeof posts>>; locale: Locale }
+const { entries, locale } = Astro.props;
+const t = copy[locale];
+---
+{entries.length ? <ol class="post-list">{entries.map((post, i) => <li><a class="post-row" href={href(`posts/${post.id}`, locale)}>
+  <span class="post-number" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>
+  <div class="post-info"><div class="meta"><span class="category-label">{t[post.data.category]}</span><time datetime={post.data.date.toISOString()}>{dateLabel(post.data.date, locale)}</time>{post.data.featured && <span class="featured-dot" title={locale === 'zh' ? '精选' : 'Featured'}>•</span>}</div><h3>{post.data.title}</h3><p>{post.data.summary}</p></div>
+  <span class="post-arrow" aria-hidden="true">↗</span>
+</a></li>)}</ol> : <div class="empty-state"><span aria-hidden="true">✳</span><p>{t.empty}</p></div>}

@@ -1,30 +1,32 @@
 ---
-import "../styles/global.css";
-
-interface Props {
-  title: string;
-  description?: string;
-}
-
-const {
-  title,
-  description = "珲 is a bilingual personal blog for research, life, and works.",
-} = Astro.props;
-const base = import.meta.env.BASE_URL.endsWith("/")
-  ? import.meta.env.BASE_URL
-  : `${import.meta.env.BASE_URL}/`;
+import '../styles/global.css';
+import { href, copy, studioMode, type Locale, type settings } from '../lib/site';
+interface Props { title: string; description: string; locale: Locale; page: string; counterpart: string; config: Awaited<ReturnType<typeof settings>> }
+const { title, description, locale, page, counterpart, config } = Astro.props;
+const t = copy[locale];
+const active = ['archive', 'research', 'life', 'post'].includes(page) ? 'archive' : page;
+const canonicalPath = Astro.url.pathname.replace(/^\/hui-blog\/en\//, '/hui-blog/');
 ---
-
 <!doctype html>
-<html lang="zh-CN">
+<html lang={locale === 'zh' ? 'zh-CN' : 'en'} data-accent={config.accent}>
   <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="description" content={description} />
-    <title>{title}</title>
-    <link rel="icon" href={`${base}favicon.svg`} />
+    <meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <meta name="description" content={description}/><meta name="theme-color" content="#f8f6f1"/>
+    <title>{title}</title><link rel="icon" href={`${import.meta.env.BASE_URL.replace(/\/$/, '')}/favicon.svg`}/>
+    {!studioMode && <link rel="canonical" href={`https://zjuhui.github.io${canonicalPath}`}/>}
+    {studioMode && <meta name="robots" content="noindex,nofollow"/>}
   </head>
   <body>
-    <slot />
+    <a class="skip-link" href="#main">{t.skip}</a>
+    {studioMode && <div class="preview-banner">{t.preview}<a href="/studio/">{t.studio} ↗</a></div>}
+    <div class="site-shell">
+      <header class="site-header">
+        <a class="brand" href={href('', locale)} aria-label="Hui / 珲"><span class="seal">珲</span><span>Hui<span class="brand-dot">.</span></span></a>
+        <nav aria-label={locale === 'zh' ? '主导航' : 'Main navigation'}>{[['', 'home'], ['archive', 'writing'], ['works', 'works'], ['about', 'about']].map(([path, label]) => <a aria-current={active === path ? 'page' : undefined} href={href(path, locale)}>{t[label as keyof typeof t]}</a>)}</nav>
+        <a class="locale-switch" href={counterpart} aria-label={t.language} lang={locale === 'zh' ? 'en' : 'zh-CN'}>{locale === 'zh' ? 'EN' : '中文'} <span aria-hidden="true">↗</span></a>
+      </header>
+      <main id="main"><slot/></main>
+      <footer class="site-footer"><div><span class="footer-seal">珲</span><span>{t.footer}</span></div><div>{config.socialLinks.map(link => <a href={link.url}>{link.label} ↗</a>)}<span>© {new Date().getFullYear()} Hui</span></div></footer>
+    </div>
   </body>
 </html>

@@ -1,105 +1,56 @@
-# 珲 Blog
+# 珲 · Hui Blog
 
-Blog: In AI Era, What can I do?
+温暖、简单的个人日志。Astro 静态博客，加上只在本机运行的 Blog Studio。
 
-这是一个用 Astro 搭建的个人博客。第一阶段目标很简单：用 Markdown 和组件化页面把博客系统跑起来，再逐步加入个性化、作品集、文章分类和 token ledger。
+**开始写作：双击 `Open Blog Studio.cmd`。** 首次发布前双击 `GitHub Setup.cmd`，在浏览器里登录 Zjuhui。首次准备需要联网；项目会在 `.tools/` 安装 Node.js 24 和 GitHub CLI，不替换系统 Node.js。
 
-## 当前版本
+[图解使用指南](docs/studio-guide.md) · [换电脑与备份](docs/update-from-another-computer.md) · [线上博客](https://zjuhui.github.io/hui-blog/)
 
-- 名字：珲
-- 主题：科研、生活、作品集
-- 语言：中文和英文双语
-- 部署：GitHub Pages
-- 线上地址：https://zjuhui.github.io/hui-blog/
-- Notion 工作台：https://app.notion.com/p/379d48bea36581418150f0752012084b
+## 日常使用
 
-## 怎么运行
+1. 在「文章」里创建或打开文章，用可视化编辑器写作、插图，点击 **Save**。
+2. 在「预览」里检查已保存内容，切换桌面或手机宽度。
+3. 在「发布」里勾选这次要上线的文章和设置，**检查发布内容 → 发布到博客**。
+4. 等待「发布成功」。上传成功与部署成功分开显示。
 
-第一次下载项目后：
+保存只更新本机草稿。未选草稿与图片不会发布。Notion 保持原样，没有自动同步。编辑器自带菜单为英文，工作台和公开网站可以切换中英文；语言切换不翻译文章正文。
 
-```powershell
-npm install
-```
+## 文件与实现
 
-本地预览：
+| 路径 | 用途 |
+| --- | --- |
+| `src/content/posts/*.mdoc` | 已发布 Markdoc 文章，文件名就是稳定网址 |
+| `src/data/site.json` | 已发布的介绍、关于、配色与链接 |
+| `public/media/` | 已发布图片 |
+| `.studio/` | 本机草稿、图片、编辑基线和发布状态；不进 Git |
+| `.tools/` | 项目专用运行时；不进 Git |
+| `src/pages/[...path].astro` | 中文 / 英文共用页面与文章模板 |
+| `studio/` | 本机工作台、会话验证、选择性发布服务 |
+| `content/*.md` | 保留的历史 Markdown 草稿，与线上原文不同 |
 
-```powershell
-npm run dev
-```
+原有 `/hui-blog/posts/why-this-blog/` 与 `/hui-blog/posts/how-to-make-this-blog/` 保持不变。英文界面位于 `/hui-blog/en/`。本机 Studio 位于 `http://127.0.0.1:4321/studio/`；本机预览使用根路径，生产构建使用 `/hui-blog/`。
 
-构建静态网站：
+## 开发与验证
 
-```powershell
+使用 Node.js 24：
+
+```sh
+npm ci
+npm run check
+npm test
 npm run build
+npm run test:build
+npm run studio
 ```
 
-构建后，Astro 会把网站生成到 `dist/`。
+Studio 开启后，可运行 `node scripts/verify-preview.mjs` 比较原始文章的预览与生产正文。比较前先构建生产版，且不要修改这两篇文章的本机副本。不要在同一目录同时运行构建和 Studio；它们共用 Astro 内容缓存。正常发布使用隔离目录构建。
 
-当前 GitHub Pages 仍然从仓库根目录发布，所以正式发布前推荐运行：
+工作台仅在显式 `BLOG_STUDIO=1` 时注册。生产构建脚本会清除此变量。写入端点受回环地址、Origin 与 HttpOnly 会话令牌保护。发布从 `origin/main` 建立隔离快照，只提交已审核文件，拒绝远程冲突和并发操作；不使用 force push。部署状态按提交 SHA 查询。
 
-```powershell
-npm run build:pages
-```
+## 部署与恢复
 
-这个命令会构建 Astro，并把 `dist/` 同步到仓库根目录。
+`.github/workflows/deploy.yml` 在推送 `main` 后检查、构建并部署 GitHub Pages。Pages 的 Build and deployment / Source 应选择 **GitHub Actions**。旧根目录静态输出与 `build:pages` 暂时保留，等首次 Actions 部署成功后移除。迁移前版本可从 Git 历史恢复。
 
-## 代码结构
+本机草稿需要单独备份 `.studio/`。源码不同步、有冲突、构建失败或登录失效时，Studio 会停止并保留草稿。修复后重新审核发布；上传后部署失败可在 Actions 重试对应任务。
 
-```text
-src/layouts/BaseLayout.astro
-  全站 HTML 骨架，负责 title、description、全局 CSS。
-
-src/components/GlassHeader.astro
-  顶部毛玻璃导航。
-
-src/components/Hero.astro
-  首页第一屏，包含博客宣言、按钮和“珲”视觉标记。
-
-src/components/SectionShowcase.astro
-  Research / Life / Works 三个内容入口。
-
-src/components/WeekOnePosts.astro
-  第一周两篇文章入口。
-
-src/pages/index.astro
-  首页，把上面的组件组合起来。
-
-src/pages/posts/*.astro
-  文章详情页。
-```
-
-## 学习路线
-
-1. 先看 `src/pages/index.astro`，理解页面是怎么组合组件的。
-2. 再看 `src/components/Hero.astro`，理解首页视觉是怎么写出来的。
-3. 再看 `src/styles/global.css`，理解全局颜色、毛玻璃、圆角和背景。
-4. 想改文字，先改 `src/pages/index.astro` 或对应组件里的文本。
-5. 想改视觉，优先改 `src/styles/global.css` 里的 CSS 变量。
-
-详细解释在：
-
-```text
-docs/homepage-learning.md
-```
-
-换电脑继续更新的步骤在：
-
-```text
-docs/update-from-another-computer.md
-```
-
-v0.2 计划在：
-
-```text
-docs/v0.2-plan.md
-```
-
-## GitHub Pages
-
-当前仓库保留了根目录静态输出，方便 GitHub Pages 直接从 `main / root` 发布。
-
-后续更推荐切换到 GitHub Actions 自动部署，相关配置在：
-
-```text
-.github/workflows/deploy.yml
-```
+`docs/homepage-learning.md`、`docs/v0.2-plan.md` 等是旧版本学习笔记，保留作历史参考。当前使用方式以本 README 和 Studio 指南为准。
