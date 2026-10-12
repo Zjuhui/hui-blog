@@ -4,6 +4,7 @@ import assert from "node:assert/strict";
 import {
   resolveAppearance,
   appearanceVariables,
+  appearanceAttributes,
 } from "../src/lib/appearance.mjs";
 const publishedSettings = JSON.parse(
   await readFile("src/data/site.json", "utf8"),
@@ -16,7 +17,8 @@ try {
 }
 function verifyAppearance(html, config) {
   const appearance = resolveAppearance(config);
-  assert(html.includes(`data-layout="${appearance.layout}"`));
+  for (const [key, value] of Object.entries(appearanceAttributes(appearance)))
+    assert(html.includes(`${key}="${value}"`));
   for (const key of [
     "--paper",
     "--ink",

@@ -4,6 +4,7 @@ export const fonts = {
   sans: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif',
   serif: '"Noto Serif SC", "Songti SC", "SimSun", Georgia, serif',
   literary: '"Kaiti SC", "KaiTi", "STKaiti", "Noto Serif SC", Georgia, serif',
+  mono: '"Cascadia Code", "SFMono-Regular", Consolas, "Microsoft YaHei", monospace',
 };
 export const accents = { cinnabar: "#9e4337", sage: "#45624e", ink: "#426078" };
 const hex = z
@@ -15,13 +16,16 @@ export const appearanceSchema = z
     background: hex,
     text: hex,
     accent: hex,
-    headingFont: z.enum(["sans", "serif", "literary"]),
-    bodyFont: z.enum(["sans", "serif", "literary"]),
+    headingFont: z.enum(["sans", "serif", "literary", "mono"]),
+    bodyFont: z.enum(["sans", "serif", "literary", "mono"]),
     fontSize: z.number().int().min(15).max(22),
     lineHeight: z.number().min(1.5).max(2.3),
     readingWidth: z.number().int().min(600).max(840),
-    layout: z.enum(["list", "cards"]),
+    layout: z.enum(["list", "cards", "index"]),
     spacing: z.enum(["comfortable", "compact"]),
+    navigation: z.enum(["top", "sidebar"]).default("top"),
+    introduction: z.enum(["journal", "compact"]).default("journal"),
+    showToc: z.boolean().default(false),
   })
   .strict();
 
@@ -36,6 +40,9 @@ export const defaultAppearance = {
   readingWidth: 720,
   layout: "list",
   spacing: "comfortable",
+  navigation: "top",
+  introduction: "journal",
+  showToc: false,
 };
 export const presets = [
   {
@@ -106,6 +113,93 @@ export const presets = [
     },
   },
 ];
+
+// Original compositions informed by the linked sites' reading and navigation patterns.
+export const technicalPresets = [
+  {
+    id: "developer-index",
+    zh: "开发者索引",
+    en: "Developer Index",
+    description: {
+      zh: "简短介绍、日期对齐的文章目录，快速找到记录。",
+      en: "A short introduction and date-aligned index for quick scanning.",
+    },
+    references: [
+      { name: "Lee Robinson", url: "https://leerob.com/" },
+      { name: "Tania Rascia", url: "https://www.taniarascia.com/" },
+    ],
+    values: {
+      ...defaultAppearance,
+      background: "#ffffff",
+      text: "#292d33",
+      accent: "#315a8b",
+      headingFont: "sans",
+      fontSize: 17,
+      lineHeight: 1.85,
+      readingWidth: 720,
+      layout: "index",
+      spacing: "compact",
+      introduction: "compact",
+    },
+  },
+  {
+    id: "technical-notes",
+    zh: "技术札记",
+    en: "Technical Notes",
+    description: {
+      zh: "等宽标题、单栏摘要与文章目录，适合教程和技术长文。",
+      en: "Monospace headings, a single-column feed, and an article contents list.",
+    },
+    references: [{ name: "AstroPaper", url: "https://astro-paper.pages.dev/" }],
+    values: {
+      ...defaultAppearance,
+      background: "#f7f8fa",
+      text: "#273340",
+      accent: "#075c85",
+      headingFont: "mono",
+      fontSize: 17,
+      lineHeight: 1.85,
+      readingWidth: 700,
+      spacing: "compact",
+      introduction: "compact",
+      showToc: true,
+    },
+  },
+  {
+    id: "sidebar-notebook",
+    zh: "侧栏笔记本",
+    en: "Sidebar Notebook",
+    description: {
+      zh: "桌面侧栏导航、清晰的文章目录，适合长期整理知识。",
+      en: "Desktop sidebar navigation and article contents for a growing notebook.",
+    },
+    references: [{ name: "NexT", url: "https://theme-next.js.org/" }],
+    values: {
+      ...defaultAppearance,
+      background: "#fafafa",
+      text: "#30343a",
+      accent: "#465ba2",
+      headingFont: "sans",
+      fontSize: 17,
+      lineHeight: 1.9,
+      readingWidth: 720,
+      navigation: "sidebar",
+      introduction: "compact",
+      showToc: true,
+    },
+  },
+];
+export const allPresets = [...technicalPresets, ...presets];
+
+export function appearanceAttributes(input) {
+  const a = appearanceSchema.parse(input);
+  return {
+    "data-layout": a.layout,
+    "data-navigation": a.navigation,
+    "data-intro": a.introduction,
+    "data-toc": String(a.showToc),
+  };
+}
 
 // Old settings contain only a named accent. Reading them must not change the site.
 export function resolveAppearance(config) {

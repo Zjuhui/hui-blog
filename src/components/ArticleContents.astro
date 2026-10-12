@@ -1,0 +1,14 @@
+---
+import type { MarkdownHeading } from 'astro';
+import type { Locale } from '../lib/site';
+interface Props { headings: MarkdownHeading[]; locale: Locale }
+const { headings, locale } = Astro.props;
+const sections = headings.filter(heading => heading.depth === 2 || heading.depth === 3);
+const label = locale === 'zh' ? '文章目录' : 'On this page';
+---
+{sections.length > 1 && <nav class="article-contents" aria-label={label}>
+  <details open>
+    <summary>{label}</summary>
+    <ol>{sections.map(heading => <li class:list={{ 'nested-heading': heading.depth === 3 }}><a href={`#${heading.slug}`}>{heading.text}</a></li>)}</ol>
+  </details>
+</nav>}

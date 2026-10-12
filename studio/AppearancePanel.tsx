@@ -5,6 +5,8 @@ import {
   contrastIssues,
   fonts,
   presets,
+  technicalPresets,
+  allPresets,
   resolveAppearance,
 } from "../src/lib/appearance.mjs";
 
@@ -18,6 +20,10 @@ function sampleStyle(values: unknown) {
 const words = {
   zh: {
     presets: "从一种喜欢的风格开始",
+    technical: "技术博客推荐",
+    personal: "个人日志风格",
+    reference: "参考布局",
+    referenceNote: "根据常见技术博客的阅读与导航方式设计，可继续自定义。",
     custom: "自定义风格",
     current: "当前风格",
     hint: "点击切换配色、字体与列表样式，再按自己的喜好微调。文章内容保持原样。",
@@ -31,6 +37,7 @@ const words = {
     sans: "清晰黑体 · Sans",
     serif: "经典宋体 · Serif",
     literary: "手记楷体 · Literary",
+    mono: "代码等宽 · Mono",
     fontNote:
       "使用电脑上的中文与西文字体，无需下载。实际字形会随读者设备而略有不同。",
     fontSize: "阅读字号",
@@ -40,6 +47,15 @@ const words = {
     layout: "文章展示",
     list: "简洁列表",
     cards: "独立卡片",
+    index: "日期索引（隐藏摘要）",
+    navigation: "网站导航",
+    top: "顶部导航",
+    sidebar: "桌面侧栏（手机为顶部）",
+    introduction: "首页介绍样式",
+    journal: "舒展的个人介绍",
+    compactIntro: "紧凑的简介",
+    showToc: "显示文章目录",
+    tocHint: "有两个或更多二、三级标题时自动生成，不改变正文。",
     spacing: "页面留白",
     comfortable: "舒展",
     compact: "紧凑",
@@ -61,6 +77,11 @@ const words = {
   },
   en: {
     presets: "Start with a style you like",
+    technical: "Technical blog recommendations",
+    personal: "Personal journal styles",
+    reference: "Layout references",
+    referenceNote:
+      "Adapted from established reading and navigation patterns. Every setting stays customizable.",
     custom: "Custom style",
     current: "Current style",
     hint: "Switch the palette, type, and article list in one click, then make it your own. Article content stays as authored.",
@@ -74,6 +95,7 @@ const words = {
     sans: "Clear sans-serif",
     serif: "Classic serif",
     literary: "Literary / Kai",
+    mono: "Code / Monospace",
     fontNote:
       "Uses local Chinese and Latin fonts without downloads. Letterforms may vary across readers’ devices.",
     fontSize: "Reading size",
@@ -83,6 +105,16 @@ const words = {
     layout: "Article display",
     list: "Simple list",
     cards: "Individual cards",
+    index: "Date index (hide summaries)",
+    navigation: "Site navigation",
+    top: "Top navigation",
+    sidebar: "Desktop sidebar (top on mobile)",
+    introduction: "Home introduction style",
+    journal: "Spacious personal introduction",
+    compactIntro: "Compact introduction",
+    showToc: "Show article contents",
+    tocHint:
+      "Generated when an article has two or more level 2 or 3 headings. Article text stays unchanged.",
     spacing: "Page spacing",
     comfortable: "Comfortable",
     compact: "Compact",
@@ -166,7 +198,10 @@ export default function AppearancePanel({
   const saved = resolveAppearance(savedConfig);
   const signature = JSON.stringify(appearance);
   const changed = signature !== JSON.stringify(saved);
-  const current = presets.find((p) => JSON.stringify(p.values) === signature);
+  const current = allPresets.find(
+    (p) =>
+      JSON.stringify(resolveAppearance({ appearance: p.values })) === signature,
+  );
   const issues = contrastIssues(appearance) as ("text" | "accent")[];
   const [previous, setPrevious] = useState<Appearance | null>(null);
   const [mobile, setMobile] = useState(false);
@@ -195,7 +230,7 @@ export default function AppearancePanel({
     setPrevious(appearance);
     onChange({ ...config, appearance: next });
   }
-  function field(key: keyof Appearance, value: string | number) {
+  function field(key: keyof Appearance, value: string | number | boolean) {
     update({ ...appearance, [key]: value });
   }
   return (
@@ -203,44 +238,84 @@ export default function AppearancePanel({
       <section className="appearance-presets" aria-labelledby="preset-title">
         <h2 id="preset-title">{t.presets}</h2>
         <p className="muted">{t.hint}</p>
-        <div className="preset-grid">
-          {presets.map((p) => (
-            <button
-              key={p.id}
-              className="preset-card"
-              aria-pressed={current?.id === p.id}
-              onClick={() => update({ ...p.values } as Appearance)}
+        <h3 className="preset-group-title">{t.technical}</h3>
+        <p className="muted">{t.referenceNote}</p>
+        {([technicalPresets, presets] as const).map((group, groupIndex) => {
+          const cards = (
+            <div
+              className={`preset-grid ${groupIndex === 0 ? "technical-grid" : ""}`}
             >
-              <div
-                className="preset-sample"
-                aria-hidden="true"
-                style={sampleStyle(p.values)}
-              >
-                <span className="sample-brand">
-                  珲 <i>Hui.</i>
-                </span>
-                <strong>
-                  {lang === "zh"
-                    ? "把日子写成故事。"
-                    : "Stories, along the way."}
-                </strong>
-                <span className="sample-line" />
-                <span className="sample-line short" />
-                <div className={`sample-posts ${p.values.layout}`}>
-                  <span />
-                  <span />
+              {group.map((p) => (
+                <div className="preset-option" key={p.id}>
+                  <button
+                    key={p.id}
+                    className="preset-card"
+                    aria-pressed={current?.id === p.id}
+                    onClick={() => update({ ...p.values } as Appearance)}
+                  >
+                    <div
+                      className="preset-sample"
+                      data-navigation={p.values.navigation}
+                      aria-hidden="true"
+                      style={sampleStyle(p.values)}
+                    >
+                      <span className="sample-brand">
+                        珲 <i>Hui.</i>
+                      </span>
+                      <strong>
+                        {lang === "zh"
+                          ? groupIndex === 0
+                            ? "记录，理解，分享。"
+                            : "把日子写成故事。"
+                          : groupIndex === 0
+                            ? "Build. Learn. Share."
+                            : "Stories, along the way."}
+                      </strong>
+                      <span className="sample-line" />
+                      <span className="sample-line short" />
+                      <div className={`sample-posts ${p.values.layout}`}>
+                        <span />
+                        <span />
+                      </div>
+                    </div>
+                    <span className="preset-name">
+                      {p[lang]}
+                      <span aria-hidden="true">
+                        {current?.id === p.id ? "✓" : "↗"}
+                      </span>
+                    </span>
+                    <span className="preset-description">
+                      {p.description[lang]}
+                    </span>
+                  </button>
+                  {"references" in p && (
+                    <p className="preset-references">
+                      {t.reference}:{" "}
+                      {p.references.map((ref, index) => (
+                        <span key={ref.url}>
+                          {index > 0 && " · "}
+                          <a href={ref.url} target="_blank" rel="noreferrer">
+                            {ref.name} ↗
+                          </a>
+                        </span>
+                      ))}
+                    </p>
+                  )}
                 </div>
-              </div>
-              <span className="preset-name">
-                {p[lang]}
-                <span aria-hidden="true">
-                  {current?.id === p.id ? "✓" : "↗"}
-                </span>
-              </span>
-              <span className="preset-description">{p.description[lang]}</span>
-            </button>
-          ))}
-        </div>
+              ))}
+            </div>
+          );
+          return groupIndex === 0 ? (
+            <div key="technical">{cards}</div>
+          ) : (
+            <details className="personal-presets" key="personal">
+              <summary>
+                {t.personal} · {presets.length}
+              </summary>
+              {cards}
+            </details>
+          );
+        })}
         <div className="appearance-status">
           <p>
             {t.current}: <strong>{current?.[lang] ?? t.custom}</strong>
@@ -297,15 +372,17 @@ export default function AppearancePanel({
                   value={appearance[key]}
                   onChange={(e) => field(key, e.target.value)}
                 >
-                  {(["sans", "serif", "literary"] as const).map((font) => (
-                    <option
-                      key={font}
-                      value={font}
-                      style={{ fontFamily: fonts[font] }}
-                    >
-                      {t[font]}
-                    </option>
-                  ))}
+                  {(["sans", "serif", "literary", "mono"] as const).map(
+                    (font) => (
+                      <option
+                        key={font}
+                        value={font}
+                        style={{ fontFamily: fonts[font] }}
+                      >
+                        {t[font]}
+                      </option>
+                    ),
+                  )}
                 </select>
               </label>
             ))}
@@ -341,6 +418,26 @@ export default function AppearancePanel({
           <section className="settings-section">
             <h2>{t.layoutTitle}</h2>
             <label>
+              {t.navigation}
+              <select
+                value={appearance.navigation}
+                onChange={(e) => field("navigation", e.target.value)}
+              >
+                <option value="top">{t.top}</option>
+                <option value="sidebar">{t.sidebar}</option>
+              </select>
+            </label>
+            <label>
+              {t.introduction}
+              <select
+                value={appearance.introduction}
+                onChange={(e) => field("introduction", e.target.value)}
+              >
+                <option value="journal">{t.journal}</option>
+                <option value="compact">{t.compactIntro}</option>
+              </select>
+            </label>
+            <label>
               {t.layout}
               <select
                 value={appearance.layout}
@@ -348,6 +445,7 @@ export default function AppearancePanel({
               >
                 <option value="list">{t.list}</option>
                 <option value="cards">{t.cards}</option>
+                <option value="index">{t.index}</option>
               </select>
             </label>
             <label>
@@ -360,6 +458,15 @@ export default function AppearancePanel({
                 <option value="compact">{t.compact}</option>
               </select>
             </label>
+            <label className="checkbox-label">
+              <input
+                type="checkbox"
+                checked={appearance.showToc}
+                onChange={(e) => field("showToc", e.target.checked)}
+              />
+              {t.showToc}
+            </label>
+            <p className="muted">{t.tocHint}</p>
           </section>
         </div>
         <section className="appearance-preview" aria-label={t.preview}>

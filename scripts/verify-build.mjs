@@ -4,6 +4,7 @@ import assert from "node:assert/strict";
 import {
   resolveAppearance,
   appearanceVariables,
+  appearanceAttributes,
 } from "../src/lib/appearance.mjs";
 
 const root = path.resolve("dist");
@@ -37,10 +38,12 @@ for (const file of files) {
     `Local-only code leaked into ${relative}`,
   );
   if (!file.endsWith(".html")) continue;
-  assert(
-    source.includes(`data-layout="${appearance.layout}"`),
-    `Appearance layout missing in ${relative}`,
-  );
+  for (const [key, value] of Object.entries(appearanceAttributes(appearance))) {
+    assert(
+      source.includes(`${key}="${value}"`),
+      `Appearance ${key} missing in ${relative}`,
+    );
+  }
   for (const key of [
     "--paper",
     "--ink",
@@ -89,6 +92,18 @@ for (const slug of ["why-this-blog", "how-to-make-this-blog"]) {
   );
   assert(zh.includes(`/hui-blog/en/posts/${slug}/`));
   assert(en.includes(`/hui-blog/posts/${slug}/`));
+  for (const html of [zh, en]) {
+    const outline = html.match(
+      /<nav class="article-contents"[\s\S]*?<\/nav>/,
+    )?.[0];
+    assert(outline, `Expected contents for the original article: ${slug}`);
+    for (const match of outline.matchAll(/href="#([^"]+)"/g)) {
+      assert(
+        html.includes(`id="${match[1]}"`),
+        `Broken contents link: ${match[1]}`,
+      );
+    }
+  }
 }
 console.log(
   `Verified ${htmlFiles.length} pages: links, assets, language switching, preserved bodies, and no Studio routes.`,

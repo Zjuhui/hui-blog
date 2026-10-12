@@ -10,6 +10,9 @@ import {
   contrastIssues,
   defaultAppearance,
   presets,
+  allPresets,
+  technicalPresets,
+  appearanceAttributes,
   resolveAppearance,
 } from "../src/lib/appearance.mjs";
 import {
@@ -28,7 +31,7 @@ const original = await readFile(
 test("legacy settings retain their named accent; presets have readable foregrounds", () => {
   assert.deepEqual(resolveAppearance(JSON.parse(original)), defaultAppearance);
   assert.equal(resolveAppearance({ accent: "sage" }).accent, "#45624e");
-  for (const preset of presets) {
+  for (const preset of allPresets) {
     const a = appearanceSchema.parse(preset.values);
     assert.deepEqual(contrastIssues(a), [], preset.id);
     const css = appearanceVariables(a);
@@ -44,6 +47,26 @@ test("legacy settings retain their named accent; presets have readable foregroun
     "dark",
   );
 });
+test("saved styles from before layout presets keep their original structure", () => {
+  const { navigation, introduction, showToc, ...oldAppearance } =
+    defaultAppearance;
+  assert.deepEqual(
+    resolveAppearance({ appearance: oldAppearance }),
+    defaultAppearance,
+  );
+  assert.deepEqual(appearanceAttributes(oldAppearance), {
+    "data-layout": "list",
+    "data-navigation": "top",
+    "data-intro": "journal",
+    "data-toc": "false",
+  });
+  const layouts = technicalPresets.map((preset) =>
+    appearanceAttributes(preset.values),
+  );
+  assert.equal(layouts[0]["data-layout"], "index");
+  assert.equal(layouts[1]["data-toc"], "true");
+  assert.equal(layouts[2]["data-navigation"], "sidebar");
+});
 test("appearance rejects injected CSS, unknown fonts, unreadable palettes and out-of-range sizes", () => {
   for (const patch of [
     { background: "red;display:none" },
@@ -54,6 +77,9 @@ test("appearance rejects injected CSS, unknown fonts, unreadable palettes and ou
     { readingWidth: 99999 },
     { layout: "unknown" },
     { spacing: "negative" },
+    { navigation: "floating" },
+    { introduction: "unknown" },
+    { showToc: "yes" },
     { text: defaultAppearance.background },
     { accent: defaultAppearance.background },
   ])
@@ -77,7 +103,8 @@ test("custom appearance saves and reopens locally and publishes only when settin
   );
   await writeFile(path.join(root, "src/content/posts/example.mdoc"), sample);
   const appearance = {
-    ...presets[2].values,
+    ...technicalPresets.find((preset) => preset.id === "sidebar-notebook")
+      .values,
     bodyFont: "serif",
     fontSize: 20,
     readingWidth: 800,

@@ -1,7 +1,7 @@
 ---
 import '../styles/global.css';
 import { href, copy, studioMode, type Locale, type settings } from '../lib/site';
-import { appearanceVariables } from '../lib/appearance.mjs';
+import { appearanceVariables, appearanceAttributes } from '../lib/appearance.mjs';
 interface Props { title: string; description: string; locale: Locale; page: string; counterpart: string; config: Awaited<ReturnType<typeof settings>> }
 const { title, description, locale, page, counterpart, config } = Astro.props;
 const t = copy[locale];
@@ -9,7 +9,7 @@ const active = ['archive', 'research', 'life', 'post'].includes(page) ? 'archive
 const canonicalPath = Astro.url.pathname.replace(/^\/hui-blog\/en\//, '/hui-blog/');
 ---
 <!doctype html>
-<html lang={locale === 'zh' ? 'zh-CN' : 'en'} data-layout={config.appearance.layout} style={appearanceVariables(config.appearance)}>
+<html lang={locale === 'zh' ? 'zh-CN' : 'en'} {...appearanceAttributes(config.appearance)} style={appearanceVariables(config.appearance)}>
   <head>
     <meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
     <meta name="description" content={description}/><meta name="theme-color" content={config.appearance.background}/>

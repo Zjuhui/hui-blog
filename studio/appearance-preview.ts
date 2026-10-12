@@ -1,6 +1,7 @@
 import {
   appearanceSchema,
   appearanceVariables,
+  appearanceAttributes,
 } from "../src/lib/appearance.mjs";
 
 // Registered by the local Studio integration; absent from production builds.
@@ -19,7 +20,11 @@ window.addEventListener("message", (event) => {
   )) {
     document.documentElement.style.setProperty(name, value);
   }
-  document.documentElement.dataset.layout = result.data.layout;
+  for (const [name, value] of Object.entries(
+    appearanceAttributes(result.data),
+  )) {
+    document.documentElement.setAttribute(name, value);
+  }
   document
     .querySelector('meta[name="theme-color"]')
     ?.setAttribute("content", result.data.background);
