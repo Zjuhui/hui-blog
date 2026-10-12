@@ -248,6 +248,7 @@ export default function Studio() {
   const [editing, setEditing] = useSession("hui-editor", "");
   const [previewPath, setPreviewPath] = useSession("hui-preview", "/");
   const [frameKey, setFrameKey] = useState(0);
+  const [settingsReset, setSettingsReset] = useState(0);
   const [mobile, setMobile] = useState(false);
   const modalRef = useRef<HTMLElement>(null);
   const [selected, setSelected] = useState<string[]>([]);
@@ -616,6 +617,7 @@ export default function Studio() {
                       onClick={() => {
                         configVersion.current += 1;
                         setConfig(data.settings);
+                        setSettingsReset((value) => value + 1);
                         sessionStorage.removeItem("hui-unsaved-settings");
                         setDirty(false);
                         setError("");
@@ -652,6 +654,7 @@ export default function Studio() {
                   </button>
                 </div>
                 <AppearancePanel
+                  key={settingsReset}
                   config={config}
                   savedConfig={data.settings}
                   lang={lang}

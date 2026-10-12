@@ -1246,6 +1246,71 @@ label small {
 .design-social button {
   font-size: 11px;
 }
+.editable-links {
+  list-style: none;
+  padding: 0;
+  margin: 16px 0;
+}
+.editable-links li,
+.link-composer {
+  padding: 15px;
+  margin: 0 0 12px;
+  border: 1px solid #ded7cb;
+  border-radius: 7px;
+  background: #fffdf9;
+  min-width: 0;
+}
+.link-row-title,
+.link-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.link-row-title {
+  justify-content: space-between;
+}
+.link-row-title strong {
+  overflow-wrap: anywhere;
+  font-size: 14px;
+}
+.link-row-title .checkbox-label {
+  margin: 0;
+  font-size: 12px;
+}
+.link-destination {
+  overflow-wrap: anywhere;
+  font-size: 12px;
+  color: #70685c;
+  margin: 8px 0 12px;
+}
+.link-actions button {
+  padding: 7px 11px;
+  font-size: 12px;
+}
+.link-hidden {
+  background: #f2efe8 !important;
+}
+.link-hidden .link-row-title strong {
+  color: #70685c;
+}
+.link-undo {
+  font-size: 12px;
+  padding-block: 0 14px;
+}
+.link-undo button {
+  color: #88493c;
+  text-decoration: underline;
+}
+.link-composer h3 {
+  margin-top: 0;
+}
+.link-controls > .muted {
+  margin-block: 0 16px;
+}
+.link-controls {
+  margin-bottom: 25px;
+}
 @media (min-width: 1700px) {
   .appearance-workspace {
     grid-template-columns: 340px minmax(0, 1fr);

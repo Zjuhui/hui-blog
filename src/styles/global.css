@@ -311,13 +311,33 @@ h1 {
 .writing-section + .writing-section {
   margin-top: 50px;
 }
-.home-content > .writing-section:first-of-type {
+.home-content > .writing-section.first-home-section {
   padding-top: 48px;
 }
 .home-content > .writing-section:last-child {
   padding-bottom: 56px;
 }
-.home-content:empty {
+/* The footer supplies the last boundary. Preserve complete card outlines. */
+[data-layout="list"]
+  .home-content
+  > .writing-section:last-child
+  .post-list
+  > li:last-child
+  > .post-row,
+[data-layout="index"]
+  .home-content
+  > .writing-section:last-child
+  .post-list
+  > li:last-child
+  > .post-row,
+.home-content > .writing-section:last-child > .empty-state {
+  border-bottom: 0;
+}
+/* A heading and an empty message share one boundary, not adjacent rules. */
+.writing-section > .section-heading + .empty-state {
+  border-top: 0;
+}
+.home-content-empty {
   min-height: 35vh;
 }
 .endnote {
@@ -341,6 +361,16 @@ h1 {
   width: 52px;
   height: 1px;
   background: var(--line);
+}
+/* Reordered sections use the preceding section's space only once. */
+.home-content > .intro + .endnote {
+  padding-top: 0;
+}
+.home-content > .endnote + .intro {
+  padding-top: 0;
+}
+.home-content > .writing-section + .intro {
+  padding-top: 50px;
 }
 .site-footer {
   display: flex;
@@ -529,8 +559,13 @@ blockquote {
 }
 .about-links {
   display: flex;
+  flex-wrap: wrap;
   gap: 24px;
   margin: 30px 0;
+}
+.about-links a {
+  max-width: 100%;
+  overflow-wrap: anywhere;
 }
 .skip-link {
   position: fixed;
@@ -600,9 +635,6 @@ blockquote {
     padding-right: 12px;
   }
   .intro-margin {
-    display: none;
-  }
-  .intro-margin-only {
     display: none;
   }
   .eyebrow {

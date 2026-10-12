@@ -14,6 +14,7 @@ import matter from "gray-matter";
 import { z } from "zod";
 import { appearanceSchema, contrastIssues } from "../src/lib/appearance.mjs";
 import { presentationSchema } from "../src/lib/site-customization.mjs";
+import { linkUrlSchema } from "../src/lib/site-links.mjs";
 
 export const postSchema = z.object({
   title: z.string().trim().min(1).max(200),
@@ -59,10 +60,8 @@ export const siteSchema = z.object({
     .array(
       z.object({
         label: z.string().trim().max(40),
-        url: z
-          .string()
-          .url()
-          .refine((s) => /^https?:\/\//.test(s), "Use an http or https URL"),
+        url: linkUrlSchema,
+        visible: z.boolean().optional(),
       }),
     )
     .max(10),

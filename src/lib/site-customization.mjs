@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { defaultNavigation, navigationSchema } from "./site-links.mjs";
 
 export const homeSectionIds = ["intro", "recent", "works", "note"];
 
@@ -94,6 +95,7 @@ export const presentationSchema = z
       })
       .strict(),
     text: z.object({ zh: textSchema, en: textSchema }).strict(),
+    navigation: navigationSchema.optional(),
     home: z
       .object({
         sections: z
@@ -128,6 +130,7 @@ export const presentationSchema = z
 export const defaultPresentation = {
   branding: { mark: "珲", wordmark: "Hui", showMark: true, showWordmark: true },
   text: textDefaults,
+  navigation: defaultNavigation,
   home: {
     sections: homeSectionIds.map((id) => ({ id, visible: true })),
     recentLimit: 6,

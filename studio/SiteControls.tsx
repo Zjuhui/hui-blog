@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { draftPresentation } from "../src/lib/site-customization.mjs";
+import LinkControls from "./LinkControls";
 
 type Lang = "zh" | "en";
 export const sectionNames = {
@@ -220,9 +221,16 @@ export default function SiteControls({
         )}
         {section === "navigation" && (
           <>
-            {["home", "writing", "works", "about", "research", "life"].map(
-              text,
-            )}
+            <LinkControls
+              kind="navigation"
+              config={config}
+              presentation={p}
+              lang={lang}
+              locale={locale}
+              onChange={onChange}
+            />
+            <h3>{words("分类名称", "Category labels")}</h3>
+            {["research", "life"].map(text)}
             <p className="muted">
               {words(
                 "名称可自由修改，已有网址保持不变。",
@@ -411,54 +419,14 @@ export default function SiteControls({
                 update({ ...p, footer: { ...p.footer, showCopyright } }),
             )}
             <h3>{words("社交链接", "Social links")}</h3>
-            {config.socialLinks.map((link: any, i: number) => (
-              <div className="design-social" key={i}>
-                {(["label", "url"] as const).map((key) => (
-                  <label key={key}>
-                    {key === "label"
-                      ? words("名称", "Label")
-                      : words("网址", "URL")}
-                    <input
-                      value={link[key]}
-                      onChange={(e) =>
-                        onChange({
-                          ...config,
-                          socialLinks: config.socialLinks.map(
-                            (v: any, j: number) =>
-                              i === j ? { ...v, [key]: e.target.value } : v,
-                          ),
-                        })
-                      }
-                    />
-                  </label>
-                ))}
-                <button
-                  className="outlined"
-                  onClick={() =>
-                    onChange({
-                      ...config,
-                      socialLinks: config.socialLinks.filter(
-                        (_: unknown, j: number) => i !== j,
-                      ),
-                    })
-                  }
-                >
-                  {words("移除链接", "Remove link")}
-                </button>
-              </div>
-            ))}
-            <button
-              className="outlined"
-              disabled={config.socialLinks.length >= 10}
-              onClick={() =>
-                onChange({
-                  ...config,
-                  socialLinks: [...config.socialLinks, { label: "", url: "" }],
-                })
-              }
-            >
-              ＋ {words("添加链接", "Add link")}
-            </button>
+            <LinkControls
+              kind="social"
+              config={config}
+              presentation={p}
+              lang={lang}
+              locale={locale}
+              onChange={onChange}
+            />
           </>
         )}
       </section>
