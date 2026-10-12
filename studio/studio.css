@@ -85,17 +85,18 @@ p {
   gap: 13px;
   align-items: center;
   font:
-    26px Georgia,
+    24px Georgia,
     serif;
   text-decoration: none !important;
 }
 .studio-seal {
   font:
-    25px "SimSun",
+    15px Georgia,
     serif;
   border: 1px solid #9e4337;
   color: #9e4337;
   width: 34px;
+  flex-shrink: 0;
   height: 39px;
   border-radius: 3px;
   display: grid;
@@ -184,6 +185,7 @@ p {
 }
 .studio-topbar > a {
   font-size: 11px;
+  margin-left: auto;
 }
 .studio-heading {
   display: flex;
@@ -571,23 +573,6 @@ label small {
 .publication-state.failed h2 {
   color: #9e4337;
 }
-.guide-steps {
-  list-style: none;
-  padding: 0;
-  margin: 0 0 40px;
-}
-.guide-steps li {
-  display: flex;
-  gap: 24px;
-  padding: 22px 0;
-  border-bottom: 1px solid #e2dbce;
-}
-.guide-steps span {
-  font:
-    24px Georgia,
-    serif;
-  color: #aa7058;
-}
 .guide-steps p,
 .guide-note p {
   font-size: 13px;
@@ -600,6 +585,226 @@ label small {
 }
 .guide-note p {
   margin-bottom: 16px;
+}
+.beginner-guide {
+  max-width: 920px;
+  padding-top: 42px;
+}
+.guide-hero h1 {
+  font-size: clamp(30px, 4vw, 44px);
+  line-height: 1.25;
+  margin: 12px 0 18px;
+  letter-spacing: -0.025em;
+}
+.guide-hero > .eyebrow {
+  color: #8b5743;
+  font-size: 10px;
+  letter-spacing: 0.13em;
+  margin: 0;
+}
+.guide-hero > p:not(.eyebrow) {
+  max-width: 700px;
+  color: #6c665b;
+  font-size: 15px;
+  line-height: 1.9;
+}
+.guide-route {
+  list-style: none;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin: 28px 0 20px;
+}
+.guide-route li {
+  min-width: 0;
+  border: 1px solid #ded7cb;
+  border-radius: 8px;
+  background: #fffdf9;
+}
+.guide-route a,
+.guide-route button {
+  display: block;
+  width: 100%;
+  height: 100%;
+  text-align: left;
+  padding: 16px;
+  text-decoration: none;
+  color: #514a3f;
+  font-size: 13px;
+}
+.guide-route strong,
+.guide-route small {
+  display: block;
+  line-height: 1.6;
+}
+.guide-route small {
+  margin-top: 5px;
+  color: #70685c;
+  font-size: 11px;
+}
+.guide-start-actions,
+.guide-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 18px 0;
+}
+.beginner-guide .guide-note {
+  padding: 20px 24px;
+  margin: 26px 0;
+  border-left: 3px solid #a15d48;
+  background: #f2eee5;
+  border-radius: 0 8px 8px 0;
+}
+.beginner-guide .guide-note p {
+  color: #61584b;
+}
+.beginner-guide .guide-note p:last-child {
+  margin-bottom: 0;
+}
+.beginner-guide .guide-steps {
+  margin: 32px 0;
+}
+.guide-step {
+  border: 1px solid #ded7cb;
+  background: #fffdf9;
+  border-radius: 9px;
+  scroll-margin-top: 20px;
+  overflow: hidden;
+}
+.guide-step + .guide-step {
+  margin-top: 12px;
+}
+.guide-route button > span {
+  display: block;
+  color: #9a604c;
+  font:
+    21px Georgia,
+    serif;
+  margin-bottom: 10px;
+}
+.guide-step > summary {
+  display: flex;
+  gap: 18px;
+  align-items: center;
+  padding: 22px 24px;
+  cursor: pointer;
+  list-style: none;
+}
+.guide-step > summary::-webkit-details-marker {
+  display: none;
+}
+.beginner-guide summary:focus-visible {
+  outline: 2px solid #9e4337;
+  outline-offset: -4px;
+}
+.guide-step > summary::after {
+  content: "+";
+  margin-left: auto;
+  color: #8e4d3c;
+  font-size: 22px;
+}
+.guide-step[open] > summary::after {
+  content: "−";
+}
+.beginner-guide .guide-step-number {
+  flex-shrink: 0;
+  color: #9a604c;
+  font:
+    25px Georgia,
+    serif;
+}
+.beginner-guide .guide-step-heading {
+  color: #39362f;
+  font-family: inherit;
+  font-size: 15px;
+  line-height: 1.6;
+}
+.guide-step-heading strong,
+.guide-step-heading small {
+  display: block;
+}
+.guide-step-heading small {
+  font-size: 12px;
+  font-weight: 400;
+  color: #746b5e;
+}
+.guide-step-body {
+  padding: 0 24px 22px 73px;
+  font-size: 13px;
+  color: #5f574b;
+  line-height: 1.9;
+}
+.beginner-guide .guide-step-body p {
+  color: #5f574b;
+  margin: 0 0 12px;
+}
+.beginner-guide .guide-step-body ol,
+.beginner-guide .guide-step-body ul {
+  padding-left: 22px;
+  margin: 10px 0 18px;
+}
+.beginner-guide .guide-step-body li {
+  display: list-item;
+  border: 0;
+  padding: 0 0 8px;
+}
+.beginner-guide code {
+  font-size: 0.9em;
+  background: #efebe3;
+  padding: 2px 5px;
+  border-radius: 3px;
+  overflow-wrap: anywhere;
+}
+.beginner-guide a {
+  color: #8b4534;
+  text-underline-offset: 3px;
+}
+.guide-example {
+  padding: 14px 18px;
+  border-radius: 6px;
+  background: #f4f1ea;
+  margin: 16px 0;
+}
+.guide-facts {
+  margin: 0;
+}
+.guide-facts dt {
+  font-weight: 600;
+  margin-top: 12px;
+}
+.guide-facts dd {
+  margin: 4px 0 12px;
+}
+.guide-recovery {
+  border-top: 1px solid #ded7cb;
+  padding: 18px 0;
+  font-size: 13px;
+  line-height: 1.9;
+}
+.guide-recovery summary {
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+}
+@media (max-width: 700px) {
+  .beginner-guide {
+    padding-top: 26px;
+  }
+  .guide-route {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .guide-step > summary {
+    padding: 18px;
+    gap: 13px;
+  }
+  .guide-step-body {
+    padding: 0 18px 18px;
+  }
+  .beginner-guide .guide-note {
+    padding: 16px;
+  }
 }
 .modal-backdrop {
   position: fixed;

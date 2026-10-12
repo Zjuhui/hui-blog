@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import "./studio.css";
 import AppearancePanel from "./AppearancePanel";
+import BeginnerGuide from "./BeginnerGuide";
 import { contrastIssues, resolveAppearance } from "../src/lib/appearance.mjs";
 
 type Lang = "zh" | "en";
@@ -87,19 +88,6 @@ const words = {
     saveFirst: "离开前请先保存网站设置。",
     error: "未能完成操作",
     close: "关闭",
-    guideTitle: "从想法到文章",
-    steps: [
-      "打开 Open Blog Studio.cmd，工作台会在浏览器里启动。",
-      "在文章页点击「写一篇新文章」，填入标题与网址。用编辑器工具栏排版、插入图片，然后点击 Save。",
-      "点击「预览已保存的内容」。可切换手机与桌面，也可预览首页。",
-      "前往「发布」，选择文章和设置，检查文件清单，再点击「发布到博客」。看到「发布成功」后，才表示网站已更新。",
-    ],
-    backup: "备份与恢复",
-    backupText:
-      "草稿和未发布图片保存在 .studio 文件夹，只在这台电脑上。定期复制整个 .studio 到自己的备份盘；换电脑时也带上它。已发布文章保存在 Git 历史里。发布失败不会删除草稿。",
-    recovery:
-      "如果提示远程内容有冲突，请保留草稿并先同步项目。不要强制覆盖。上传成功但部署失败时，可在 GitHub Actions 中重新运行失败的任务。",
-    englishEditor: "写作编辑器的内置菜单使用英文；正文可以自由使用中文或英文。",
     saveMeaning: "保存 ≠ 发布",
     saveMeaningText:
       "保存只更新本机的工作副本。预览也只在本机。只有发布按钮才会上传所选内容。",
@@ -189,20 +177,6 @@ const words = {
     saveFirst: "Save your site settings before leaving.",
     error: "Could not complete the action",
     close: "Close",
-    guideTitle: "From an idea to an article",
-    steps: [
-      "Open Open Blog Studio.cmd. Your writing desk opens in the browser.",
-      "Choose “Write a new article” and enter its title and URL. Use the editor toolbar to format text and add images, then click Save.",
-      "Choose “Preview saved changes.” Switch between mobile and desktop, or preview your homepage.",
-      "Go to Publish, select articles and settings, review the file list, then publish. “Published successfully” means the deployment has finished.",
-    ],
-    backup: "Backup and recovery",
-    backupText:
-      "Drafts and unpublished images live in .studio on this computer. Regularly copy that whole folder to your own backup drive; bring it with you when switching computers. Published articles are kept in Git history. Failed publication never deletes drafts.",
-    recovery:
-      "If remote content conflicts, keep your draft and synchronize the project before reconciling it. Never force overwrite. If upload succeeds but deployment fails, rerun the failed workflow in GitHub Actions.",
-    englishEditor:
-      "The writing editor uses English menus. Article text can be in any language.",
     saveMeaning: "Saving is separate from publishing",
     saveMeaningText:
       "Save updates your local working copy. Preview stays local too. Only the publishing button uploads your selected content.",
@@ -386,9 +360,11 @@ export default function Studio() {
     <div className="studio-app">
       <aside className="studio-sidebar">
         <a className="studio-brand" href="/studio/">
-          <span className="studio-seal">珲</span>
+          <span className="studio-seal" aria-hidden="true">
+            LB
+          </span>
           <span>
-            Hui<span className="studio-brand-sub">BLOG STUDIO</span>
+            Lazy Blog<span className="studio-brand-sub">BLOG STUDIO</span>
           </span>
         </a>
         <p className="sidebar-caption">{t.desk}</p>
@@ -433,7 +409,7 @@ export default function Studio() {
         className={`studio-main ${["editor", "preview", "appearance"].includes(view) ? "wide" : ""}`}
       >
         <header className="studio-topbar">
-          <span>{t.subtitle}</span>
+          {view !== "guide" && <span>{t.subtitle}</span>}
           <a
             href="https://zjuhui.github.io/hui-blog/"
             target="_blank"
@@ -832,34 +808,11 @@ export default function Studio() {
               </>
             )}
             {view === "guide" && (
-              <>
-                <div className="studio-heading">
-                  <div>
-                    <p className="overline">
-                      {lang === "zh" ? "一份简明指南" : "A SMALL FIELD GUIDE"}
-                    </p>
-                    <h1>{t.guideTitle}</h1>
-                  </div>
-                </div>
-                <ol className="guide-steps">
-                  {t.steps.map((step, i) => (
-                    <li key={step}>
-                      <span>{String(i + 1).padStart(2, "0")}</span>
-                      <p>{step}</p>
-                    </li>
-                  ))}
-                </ol>
-                <section className="guide-note">
-                  <h2>{t.saveMeaning}</h2>
-                  <p>{t.saveMeaningText}</p>
-                  <p>{t.englishEditor}</p>
-                </section>
-                <section className="guide-note">
-                  <h2>{t.backup}</h2>
-                  <p>{t.backupText}</p>
-                  <p>{t.recovery}</p>
-                </section>
-              </>
+              <BeginnerGuide
+                lang={lang}
+                onNavigate={navigate}
+                onCreate={() => setCreating(true)}
+              />
             )}
           </>
         )}

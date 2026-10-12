@@ -1,4 +1,22 @@
-# Blog Studio 简明指南
+# Lazy Blog 使用指南
+
+## 从零开始 / Your first blog
+
+**Lazy Blog 是本机工作台的名称。** 公开博客的名称、标识和文字可在网站设置中单独修改。
+
+第一次使用时，按下面的顺序完成第一篇文章即可；不需要先学会代码。工作台里的 **使用指南 / Guide** 提供同样的逐步说明和可点击入口。
+
+1. **准备项目**：这台电脑已经准备好 `F:\Blog`。换电脑时需要带 Git 历史的项目副本，详见 [换电脑指南](update-from-another-computer.md)。只下载 ZIP 不足以使用当前发布流程。本项目已配置 `Zjuhui/hui-blog`；换成其他账号或全新仓库前，需要先配置对应的仓库、网站路径和部署目标，登录本身不会完成迁移。
+2. **启动工作台**：双击 **Open Blog Studio.cmd**。首次联网准备写作工具后，浏览器打开 Lazy Blog。看到文章库就表示准备完成。
+3. **设置自己的博客**：打开 **网站设置 → 区块与文字**，设置浏览器标题、可见标识、中英文介绍、导航和社交链接；不需要的区块可以隐藏。再去 **视觉设计 → 推荐风格** 选一种布局，点击 **保存到本机**。
+4. **写第一篇文章**：在文章页选择 **写一篇新文章**。例如标题「我的第一篇笔记」、网址 `my-first-note`；标题可含中文，网址用小写英文、数字与短横线。填写摘要、分类、日期和正文，尝试一个小标题、链接或图片，然后点击编辑器里的 **Save**。
+5. **检查效果**：打开 **预览已保存的内容**，检查首页、文章、图片和链接，并切换桌面 / 手机。正文会保留自己写下的语言；界面语言切换不会自动翻译文章。
+6. **连接并发布**：首次运行 **GitHub Setup.cmd**，用有权限的 GitHub 账号完成浏览器登录。回到 **发布**，勾选第一篇文章和网站设置，**检查发布内容 → 发布到博客**。等到 **发布成功** 再打开线上网站。
+7. **保留备份**：退出前保存文章和设置。把整个 `.studio` 文件夹复制到自己的备份位置，保存未发布草稿及图片。
+
+**应用链接 / Apply link** 更新当前设计预览；**保存到本机 / Save locally** 或文章 **Save** 保留本机工作；只有 **发布 / Publish** 才会让选中的内容上线。
+
+English: Open the prepared project with **Open Blog Studio.cmd**, personalize it in **Site settings**, choose a style, write and **Save** a first article, inspect **Preview**, connect GitHub with **GitHub Setup.cmd**, then **Review changes → Publish**. This installation targets `Zjuhui/hui-blog`; another owner or repository needs separate hosting configuration before publishing. Back up `.studio` for unpublished work.
 
 ## 1 · 启动 / Launch
 

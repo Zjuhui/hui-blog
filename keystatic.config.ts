@@ -1,7 +1,7 @@
 import { config, fields, collection } from "@keystatic/core";
 export default config({
   storage: { kind: "local" },
-  ui: { brand: { name: "Hui · Writing desk" }, navigation: ["posts"] },
+  ui: { brand: { name: "Lazy Blog · Writing desk" }, navigation: ["posts"] },
   collections: {
     posts: collection({
       label: "Local drafts",

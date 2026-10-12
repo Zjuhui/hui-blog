@@ -1,6 +1,6 @@
 # 珲 · Hui Blog
 
-温暖、简单的个人日志。Astro 静态博客，加上只在本机运行的 Blog Studio。
+温暖、简单的个人日志。Astro 静态博客，加上只在本机运行的 **Lazy Blog** 写作工作台。
 
 **开始写作：双击 `Open Blog Studio.cmd`。** 首次发布前双击 `GitHub Setup.cmd`，在浏览器里登录 Zjuhui。首次准备需要联网；项目会在 `.tools/` 安装 Node.js 24 和 GitHub CLI，不替换系统 Node.js。
 
@@ -9,6 +9,8 @@
 设计预览会一起渲染尚未保存的网站文字、布局与样式；可切换中英文、桌面 / 手机、适合窗口 / 实际大小，也可打开全页预览。关闭「点击页面区域进行编辑」可正常浏览链接。文章正文仍先在编辑器里 Save。保存只在本机生效，发布时勾选「网站设置」才会上线。
 
 [图解使用指南](docs/studio-guide.md) · [换电脑与备份](docs/update-from-another-computer.md) · [线上博客](https://zjuhui.github.io/hui-blog/)
+
+第一次使用？打开工作台侧栏 **使用指南 / Guide**，按「准备 → 设置 → 写作 → 预览 → 连接 GitHub → 发布」逐步完成。每一步包含操作说明和入口，先在本机试写、预览，再决定上线。启动文件仍叫 `Open Blog Studio.cmd`。
 
 ## 日常使用
 
