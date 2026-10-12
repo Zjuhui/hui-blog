@@ -49,7 +49,7 @@ Studio 开启后，可运行 `node scripts/verify-preview.mjs` 比较原始文�
 
 ## 部署与恢复
 
-`.github/workflows/deploy.yml` 在推送 `main` 后检查、构建并部署 GitHub Pages。Pages 的 Build and deployment / Source 应选择 **GitHub Actions**。旧根目录静态输出与 `build:pages` 暂时保留，等首次 Actions 部署成功后移除。迁移前版本可从 Git 历史恢复。
+`.github/workflows/deploy.yml` 在推送 `main` 后检查、构建并部署 GitHub Pages。Pages 的 Build and deployment / Source 应选择 **GitHub Actions**。2026-10-12 已验证 Actions 部署成功，旧根目录静态输出与同步脚本已移除。迁移前版本 `b99faad` 可从 Git 历史恢复。
 
 本机草稿需要单独备份 `.studio/`。源码不同步、有冲突、构建失败或登录失效时，Studio 会停止并保留草稿。修复后重新审核发布；上传后部署失败可在 Actions 重试对应任务。
 
