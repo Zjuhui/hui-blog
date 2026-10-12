@@ -9,10 +9,13 @@ export default defineConfig({
   base: isStudio ? "/" : "/hui-blog",
   output: "static",
   outDir: "./dist",
+  // Publication snapshots share dependencies, but must keep their own caches.
+  cacheDir: "./.astro/cache",
   integrations: [markdoc(), ...(isStudio ? [react(), studio()] : [])],
   devToolbar: { enabled: false },
   server: { host: "127.0.0.1", port: 4321 },
   vite: {
+    cacheDir: "./.astro/vite",
     server: { strictPort: true },
     optimizeDeps: {
       exclude: ["@keystatic/astro/api"],
