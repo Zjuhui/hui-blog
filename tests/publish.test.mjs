@@ -9,6 +9,7 @@ import {
   command,
   deploymentState,
   validateSnapshot,
+  authFailure,
 } from "../studio/publish.mjs";
 import {
   init,
@@ -21,6 +22,16 @@ const sample = await readFile(
   new URL("../src/content/posts/why-this-blog.mdoc", import.meta.url),
   "utf8",
 );
+test("network outages do not ask the user to authenticate again", () => {
+  assert.equal(
+    authFailure("read tcp: connection was forcibly closed").unavailable,
+    true,
+  );
+  assert.equal(
+    authFailure("You are not logged into any GitHub hosts.").unavailable,
+    false,
+  );
+});
 async function fixture(t) {
   const temp = await mkdtemp(path.join(os.tmpdir(), "hui-publish-"));
   const root = path.join(temp, "blog"),

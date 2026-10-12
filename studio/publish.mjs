@@ -79,12 +79,22 @@ export async function authStatus(root) {
   try {
     await command(await ghBinary(root), ["auth", "status"], root);
     return { ok: true };
-  } catch {
-    return {
-      ok: false,
-      message: "Sign in once with GitHub Setup.cmd, then refresh Studio.",
-    };
+  } catch (error) {
+    return authFailure(error.message);
   }
+}
+export function authFailure(message) {
+  const unavailable =
+    /connection|tcp|tls|network|timed? ?out|timeout|EOF|temporary|resolve host|5\d\d/i.test(
+      message,
+    );
+  return {
+    ok: false,
+    unavailable,
+    message: unavailable
+      ? "GitHub could not be reached. Check the connection and refresh."
+      : "Sign in once with GitHub Setup.cmd, then refresh Studio.",
+  };
 }
 export function deploymentState(runs, sha) {
   const run = runs.find(

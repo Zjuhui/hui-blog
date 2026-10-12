@@ -16,7 +16,9 @@ if ($proxy.ProxyEnable -eq 1 -and $proxy.ProxyServer -match '^127\.0\.0\.1:\d+$'
 function Get-VerifiedArchive($url, $checksums, $name, $destination) {
   $archive = Join-Path $toolsDir $name
   Invoke-WebRequest -UseBasicParsing -Uri $url -OutFile $archive
-  $manifest = (Invoke-WebRequest -UseBasicParsing -Uri $checksums).Content
+  $manifestFile = Join-Path $toolsDir ($name + '.sha256.txt')
+  Invoke-WebRequest -UseBasicParsing -Uri $checksums -OutFile $manifestFile
+  $manifest = Get-Content -LiteralPath $manifestFile -Raw
   $line = ($manifest -split "`n" | Where-Object { $_ -match ([regex]::Escape($name) + '$') } | Select-Object -First 1)
   if (-not $line) { throw 'Download checksum not found.' }
   $expected = ($line.Trim() -split '\s+')[0]

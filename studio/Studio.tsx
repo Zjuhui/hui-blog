@@ -77,6 +77,8 @@ const words = {
     checkActions: "查看 GitHub Actions",
     visit: "打开线上博客",
     authNeeded: "发布前需要连接 GitHub",
+    authUnavailable: "暂时无法连接 GitHub",
+    authRetry: "请检查网络或代理后点击刷新，无需因为连接失败重新登录。",
     authHint: "双击项目里的 GitHub Setup.cmd，完成一次登录，然后点击刷新。",
     authOk: "GitHub 已连接",
     saveFirst: "离开前请先保存网站设置。",
@@ -174,6 +176,9 @@ const words = {
     checkActions: "View GitHub Actions",
     visit: "Open live blog",
     authNeeded: "Connect GitHub before publishing",
+    authUnavailable: "GitHub is temporarily unreachable",
+    authRetry:
+      "Check your network or proxy, then refresh. A connection failure does not require signing in again.",
     authHint:
       "Open GitHub Setup.cmd in the project, sign in once, then refresh.",
     authOk: "GitHub connected",
@@ -444,7 +449,7 @@ export default function Studio() {
         )}
         {notice && (
           <div className="studio-notice" role="status">
-            {notice}
+            {notice === "saved" ? t.saved : notice}
           </div>
         )}
         {!data ? (
@@ -607,7 +612,7 @@ export default function Studio() {
                         await api("settings", config);
                         sessionStorage.removeItem("hui-unsaved-settings");
                         setDirty(false);
-                        setNotice(t.saved);
+                        setNotice("saved");
                         await refresh();
                       })
                     }
@@ -790,9 +795,15 @@ export default function Studio() {
                 </div>
                 <div className={`auth-card ${data.auth.ok ? "connected" : ""}`}>
                   <strong>
-                    {data.auth.ok ? "✓ " + t.authOk : t.authNeeded}
+                    {data.auth.ok
+                      ? "✓ " + t.authOk
+                      : data.auth.unavailable
+                        ? t.authUnavailable
+                        : t.authNeeded}
                   </strong>
-                  {!data.auth.ok && <p>{t.authHint}</p>}
+                  {!data.auth.ok && (
+                    <p>{data.auth.unavailable ? t.authRetry : t.authHint}</p>
+                  )}
                 </div>
                 <section className="publish-card">
                   <h2>{t.pending}</h2>
@@ -887,7 +898,21 @@ export default function Studio() {
                     {t[data.publication.phase as "idle"] ??
                       data.publication.phase}
                   </h2>
-                  <p>{data.publication.message}</p>
+                  <p>
+                    {lang === "zh"
+                      ? ((
+                          {
+                            building: "正在检查并构建本次选择的修改。",
+                            uploading: "正在上传审核过的内容。",
+                            deploying:
+                              "已上传，正在等待 GitHub Pages 完成部署。",
+                            successful: "本次修改已成功上线。",
+                            "status-unavailable":
+                              "已上传，但暂时无法确认部署结果。请稍后刷新或查看 GitHub Actions。",
+                          } as Record<string, string>
+                        )[data.publication.phase] ?? data.publication.message)
+                      : data.publication.message}
+                  </p>
                   {data.publication.sha && (
                     <code>{data.publication.sha.slice(0, 12)}</code>
                   )}
