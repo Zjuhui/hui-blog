@@ -130,6 +130,13 @@ p {
 .site-header.without-brand .locale-switch {
   margin-left: auto;
 }
+.site-header.without-navigation .locale-switch {
+  margin-left: auto;
+}
+.site-header.without-brand.without-navigation .locale-switch {
+  border-left: 0;
+  padding-left: 0;
+}
 .site-header nav a {
   font-size: 14px;
   color: var(--muted);
@@ -229,6 +236,9 @@ h1 {
   margin: 0;
   overflow-wrap: anywhere;
 }
+.section-heading > .text-link {
+  margin-left: auto;
+}
 .section-count {
   margin-left: 12px;
   font-family: Georgia, serif;
@@ -301,7 +311,7 @@ h1 {
 .writing-section + .writing-section {
   margin-top: 50px;
 }
-.home-content > .writing-section:first-child {
+.home-content > .writing-section:first-of-type {
   padding-top: 48px;
 }
 .home-content > .writing-section:last-child {
@@ -590,6 +600,9 @@ blockquote {
     padding-right: 12px;
   }
   .intro-margin {
+    display: none;
+  }
+  .intro-margin-only {
     display: none;
   }
   .eyebrow {

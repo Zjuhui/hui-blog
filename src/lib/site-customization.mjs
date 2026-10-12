@@ -54,8 +54,8 @@ const textDefaults = {
 };
 
 export const editableTextKeys = Object.keys(textDefaults.zh);
-const label = z.string().trim().min(1).max(120);
-const description = z.string().max(1500);
+const label = z.string().trim().max(120);
+const description = z.string().trim().max(1500);
 const textSchema = z
   .object({
     home: label,
@@ -87,8 +87,8 @@ export const presentationSchema = z
   .object({
     branding: z
       .object({
-        mark: z.string().max(8),
-        wordmark: z.string().max(80),
+        mark: z.string().trim().max(8),
+        wordmark: z.string().trim().max(80),
         showMark: z.boolean(),
         showWordmark: z.boolean(),
       })

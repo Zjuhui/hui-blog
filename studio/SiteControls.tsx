@@ -131,8 +131,8 @@ export default function SiteControls({
       </label>
       <p className="muted">
         {words(
-          "也可以点击右侧预览中的区域。隐藏的区块可在这里重新开启。",
-          "You can also click an area in the preview. Hidden sections can be restored here.",
+          "页面文字可以留空，清空后对应文字和装饰会隐藏。要隐藏整块区域，请选择「首页区块」。也可点击右侧预览进行编辑。",
+          "Leave page text blank to hide it and its decoration. To hide an entire section, choose Home sections. You can also click the preview to edit.",
         )}
       </p>
       {!["branding", "structure"].includes(section) && (
@@ -162,6 +162,12 @@ export default function SiteControls({
                 value={config.name}
                 onChange={(e) => onChange({ ...config, name: e.target.value })}
               />
+              <small>
+                {words(
+                  "可以留空；浏览器标签页将使用页面标题。页眉中的文字标记和名称在下方单独设置。",
+                  "Optional; the browser tab will use the page title. Set the visible header mark and wordmark below.",
+                )}
+              </small>
             </label>
             {check(
               words("显示文字标记", "Show symbol / mark"),

@@ -17,12 +17,66 @@ import {
   library,
   collectSelection,
   siteSchema,
+  postSchema,
 } from "../studio/content.mjs";
+import { createPreview, getPreview } from "../studio/preview-state.mjs";
 
 const original = await readFile(
   new URL("../src/data/site.json", import.meta.url),
   "utf8",
 );
+
+test("blank decorative text saves, reopens and previews without restoring defaults", async (t) => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "hui-blank-text-"));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  await init(root);
+  await mkdir(path.join(root, "src/data"), { recursive: true });
+  await mkdir(path.join(root, "src/content/posts"), { recursive: true });
+  await writeFile(path.join(root, "src/data/site.json"), original);
+  const config = JSON.parse(original);
+  config.name = " \n\t";
+  config.presentation = resolvePresentation({});
+  config.presentation.branding.mark = " ";
+  config.presentation.branding.wordmark = "";
+  for (const locale of ["zh", "en"]) {
+    config.intro[locale] = { eyebrow: "\n", title: "", body: "\t " };
+    config.about[locale] = " \n";
+    for (const key of editableTextKeys)
+      config.presentation.text[locale][key] = " \n";
+  }
+  config.quote = " ";
+  config.socialLinks = [{ label: " ", url: "https://example.com/" }];
+  const expected = siteSchema.parse(config);
+  assert.equal(expected.name, "");
+  assert.equal(expected.intro.zh.title, "");
+  assert.equal(expected.intro.en.eyebrow, "");
+  assert.equal(expected.presentation.text.zh.home, "");
+  assert.equal(expected.socialLinks[0].label, "");
+  assert.deepEqual(getPreview(createPreview(config)), expected);
+  await saveSettings(root, config);
+  const reopened = (await library(root)).settings;
+  assert.deepEqual(reopened, expected);
+  assert.equal(resolvePresentation(reopened).text.en.aboutTitle, "");
+  const snapshot = await collectSelection(root, { slugs: [], settings: true });
+  assert.deepEqual(
+    JSON.parse(snapshot.files.get("src/data/site.json").toString()),
+    expected,
+  );
+  assert.equal(
+    await readFile(path.join(root, "src/data/site.json"), "utf8"),
+    original,
+  );
+  assert.throws(
+    () =>
+      postSchema.parse({
+        title: " ",
+        date: "2026-10-12",
+        category: "life",
+        language: "zh",
+      }),
+    /at least 1/,
+  );
+});
 
 test("existing site settings preserve their branding, labels and homepage order", () => {
   const legacy = JSON.parse(original);
@@ -68,13 +122,13 @@ test("homepage order and visibility are independent, and empty works stay omitte
   );
 });
 
-test("customization validates section uniqueness, sizes and navigation labels", () => {
+test("customization allows cleared labels and validates section uniqueness and sizes", () => {
   const incomplete = draftPresentation({
     presentation: { text: { zh: { home: "" } } },
   });
   assert.equal(incomplete.text.zh.home, "");
   assert.equal(incomplete.text.en.home, "Home");
-  assert.throws(() => presentationSchema.parse(incomplete));
+  assert.equal(presentationSchema.parse(incomplete).text.zh.home, "");
   for (const change of [
     (p) => {
       p.home.sections[0].id = "recent";
@@ -90,9 +144,6 @@ test("customization validates section uniqueness, sizes and navigation labels", 
     },
     (p) => {
       p.home.recentLimit = 21;
-    },
-    (p) => {
-      p.text.en.home = " ";
     },
     (p) => {
       p.branding.wordmark = "x".repeat(81);

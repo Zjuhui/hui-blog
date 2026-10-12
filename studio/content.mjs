@@ -29,12 +29,12 @@ export const postSchema = z.object({
   coverAlt: z.string().default(""),
 });
 const intro = z.object({
-  eyebrow: z.string().max(150),
-  title: z.string().min(1).max(200),
-  body: z.string().max(1500),
+  eyebrow: z.string().trim().max(150),
+  title: z.string().trim().max(200),
+  body: z.string().trim().max(1500),
 });
 export const siteSchema = z.object({
-  name: z.string().min(1).max(40),
+  name: z.string().trim().max(40),
   accent: z.enum(["cinnabar", "sage", "ink"]),
   presentation: presentationSchema.optional(),
   appearance: appearanceSchema
@@ -49,13 +49,16 @@ export const siteSchema = z.object({
     })
     .optional(),
   intro: z.object({ zh: intro, en: intro }),
-  about: z.object({ zh: z.string().max(10000), en: z.string().max(10000) }),
-  quote: z.string().max(500),
+  about: z.object({
+    zh: z.string().trim().max(10000),
+    en: z.string().trim().max(10000),
+  }),
+  quote: z.string().trim().max(500),
   showQuote: z.boolean(),
   socialLinks: z
     .array(
       z.object({
-        label: z.string().min(1).max(40),
+        label: z.string().trim().max(40),
         url: z
           .string()
           .url()

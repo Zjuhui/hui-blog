@@ -9,6 +9,12 @@ const presentation = resolvePresentation(config);
 const { branding, footer } = presentation;
 const t = { ...copy[locale], ...presentation.text[locale] };
 const hasBrand = (branding.showMark && branding.mark) || (branding.showWordmark && branding.wordmark);
+const brandLabel = config.name || [branding.showMark && branding.mark, branding.showWordmark && branding.wordmark].filter(Boolean).join(' ') || copy[locale].home;
+const navigation = [['', 'home'], ['archive', 'writing'], ['works', 'works'], ['about', 'about']].filter(([, label]) => t[label as keyof typeof t]);
+const socialLinks = config.socialLinks.filter(link => link.label.trim());
+const copyrightName = branding.wordmark || config.name;
+const hasFooterLeft = (footer.showMark && branding.mark) || t.footer;
+const hasFooterRight = socialLinks.length || (footer.showCopyright && copyrightName);
 const active = ['archive', 'research', 'life', 'post'].includes(page) ? 'archive' : page;
 const canonicalPath = Astro.url.pathname.replace(/^\/hui-blog\/en\//, '/hui-blog/');
 ---
@@ -25,13 +31,13 @@ const canonicalPath = Astro.url.pathname.replace(/^\/hui-blog\/en\//, '/hui-blog
     <a class="skip-link" href="#main">{t.skip}</a>
     {studioMode && <div class="preview-banner">{t.preview}<a href="/studio/">{t.studio} ↗</a></div>}
     <div class="site-shell">
-      <header class:list={['site-header', { 'without-brand': !hasBrand }]}>
-        {hasBrand && <a class="brand" href={href('', locale)} aria-label={config.name} data-studio-section={studioMode ? 'branding' : undefined}>{branding.showMark && branding.mark && <span class="seal">{branding.mark}</span>}{branding.showWordmark && branding.wordmark && <span class="wordmark">{branding.wordmark}<span class="brand-dot">.</span></span>}</a>}
-        <nav aria-label={locale === 'zh' ? '主导航' : 'Main navigation'} data-studio-section={studioMode ? 'navigation' : undefined}>{[['', 'home'], ['archive', 'writing'], ['works', 'works'], ['about', 'about']].map(([path, label]) => <a aria-current={active === path ? 'page' : undefined} href={href(path, locale)}>{t[label as keyof typeof t]}</a>)}</nav>
+      <header class:list={['site-header', { 'without-brand': !hasBrand, 'without-navigation': !navigation.length }]}>
+        {hasBrand && <a class="brand" href={href('', locale)} aria-label={brandLabel} data-studio-section={studioMode ? 'branding' : undefined}>{branding.showMark && branding.mark && <span class="seal">{branding.mark}</span>}{branding.showWordmark && branding.wordmark && <span class="wordmark">{branding.wordmark}<span class="brand-dot">.</span></span>}</a>}
+        {navigation.length > 0 && <nav aria-label={locale === 'zh' ? '主导航' : 'Main navigation'} data-studio-section={studioMode ? 'navigation' : undefined}>{navigation.map(([path, label]) => <a aria-current={active === path ? 'page' : undefined} href={href(path, locale)}>{t[label as keyof typeof t]}</a>)}</nav>}
         <a class="locale-switch" href={counterpart} aria-label={t.language} lang={locale === 'zh' ? 'en' : 'zh-CN'}>{locale === 'zh' ? 'EN' : '中文'} <span aria-hidden="true">↗</span></a>
       </header>
       <main id="main"><slot/></main>
-      <footer class="site-footer" data-studio-section={studioMode ? 'footer' : undefined}><div>{footer.showMark && branding.mark && <span class="footer-seal">{branding.mark}</span>}{t.footer && <span>{t.footer}</span>}</div><div>{config.socialLinks.map(link => <a href={link.url}>{link.label} ↗</a>)}{footer.showCopyright && <span>© {new Date().getFullYear()} {branding.wordmark || config.name}</span>}</div></footer>
+      {(hasFooterLeft || hasFooterRight) && <footer class="site-footer" data-studio-section={studioMode ? 'footer' : undefined}>{hasFooterLeft && <div>{footer.showMark && branding.mark && <span class="footer-seal">{branding.mark}</span>}{t.footer && <span>{t.footer}</span>}</div>}{hasFooterRight && <div>{socialLinks.map(link => <a href={link.url}>{link.label} ↗</a>)}{footer.showCopyright && copyrightName && <span>© {new Date().getFullYear()} {copyrightName}</span>}</div>}</footer>}
     </div>
   </body>
 </html>
