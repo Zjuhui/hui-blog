@@ -17,12 +17,14 @@ import {
   deploymentState,
   validateSnapshot,
   authFailure,
+  githubEnvironment,
 } from "../studio/publish.mjs";
 import {
   init,
   editPost,
   collectSelection,
   snapshotFingerprint,
+  hash,
 } from "../studio/content.mjs";
 
 const sample = await readFile(
@@ -430,4 +432,113 @@ test("unavailable deployment status is not reported as success", async (t) => {
   assert.equal(p.state.phase, "status-unavailable");
   assert.ok(p.state.sha);
   await assert.rejects(p.start({ slugs: ["example"] }), /already in progress/);
+});
+
+test("GitHub CLI uses the project's Git proxy without overriding an explicit proxy", async (t) => {
+  const { root } = await fixture(t);
+  await git(root, "config", "http.proxy", "http://127.0.0.1:1");
+  assert.deepEqual(await githubEnvironment(root, git, {}), {
+    HTTPS_PROXY: "http://127.0.0.1:1",
+    HTTP_PROXY: "http://127.0.0.1:1",
+  });
+  assert.deepEqual(
+    await githubEnvironment(root, git, {
+      HTTPS_PROXY: "http://explicit.test:2",
+    }),
+    {},
+  );
+  const run = fakeCommands();
+  const checked = [];
+  const expectedEnv = await githubEnvironment(root);
+  const p = new Publisher(root, {
+    command: async (bin, args, cwd, options) => {
+      if (["auth", "api"].includes(args[0])) {
+        checked.push(args[0]);
+        assert.deepEqual(options.env, expectedEnv);
+      }
+      return run(bin, args, cwd, options);
+    },
+  });
+  await p.start({ slugs: ["example"] });
+  await p.task;
+  assert.equal(p.state.phase, "successful", p.state.message);
+  assert.deepEqual(checked, ["auth", "api"]);
+});
+
+test("a post-upload connection failure keeps deployment separate and recovers after restart", async (t) => {
+  const { root, remote } = await fixture(t);
+  const before = await git(root, "rev-parse", "HEAD");
+  let uploaded = false;
+  let offline = true;
+  let pushes = 0;
+  const run = fakeCommands();
+  const p = new Publisher(root, {
+    git: async (cwd, ...args) => {
+      if (args[0] === "fetch" && uploaded && offline)
+        throw new Error("OpenSSL SSL_connect: SSL_ERROR_SYSCALL");
+      const result = await git(cwd, ...args);
+      if (args[0] === "push") {
+        uploaded = true;
+        pushes += 1;
+      }
+      return result;
+    },
+    command: async (bin, args, cwd, options) => {
+      if (args[0] === "api")
+        return JSON.stringify({
+          workflow_runs: [
+            {
+              name: "Deploy to GitHub Pages",
+              head_sha: p.state.sha,
+              status: "completed",
+              conclusion: "success",
+              html_url: "https://github.com/example/actions/2",
+            },
+          ],
+        });
+      return run(bin, args, cwd, options);
+    },
+  });
+  await p.start({ slugs: ["example"] });
+  await p.task;
+  assert.equal(p.state.phase, "successful", p.state.message);
+  assert.equal(p.state.syncPending, true);
+  assert.match(p.state.syncError, /SSL_ERROR_SYSCALL/);
+  assert.equal(await git(root, "rev-parse", "HEAD"), before);
+  assert.equal(await git(remote, "rev-parse", "main"), p.state.sha);
+  await assert.rejects(p.start({ slugs: ["example"] }), /already in progress/);
+
+  // A later draft edit must stay local, and recovery must use the hashes of
+  // the approved snapshot rather than treating that later edit as published.
+  const nextDraft = sample + "\nA later, unpublished revision.\n";
+  await writeFile(path.join(root, ".studio/posts/example.mdoc"), nextDraft);
+  offline = false;
+  const restored = new Publisher(root, {
+    git: async (cwd, ...args) => {
+      assert.notEqual(args[0], "push", "recovery must not publish again");
+      return git(cwd, ...args);
+    },
+    command: run,
+  });
+  restored.state = JSON.parse(
+    await readFile(path.join(root, ".studio/last-publication.json"), "utf8"),
+  );
+  await restored.pollDeployment();
+  assert.equal(restored.state.phase, "successful");
+  assert.equal(restored.state.syncPending, false);
+  assert.equal(await git(root, "rev-parse", "HEAD"), p.state.sha);
+  assert.equal(pushes, 1);
+  assert.equal(
+    await readFile(path.join(root, ".studio/posts/example.mdoc"), "utf8"),
+    nextDraft,
+  );
+  const base = JSON.parse(
+    await readFile(path.join(root, ".studio/bases.json"), "utf8"),
+  );
+  assert.equal(base.example, hash(sample + "\nSelected revision.\n"));
+  const remaining = await collectSelection(root, { slugs: ["example"] });
+  assert.equal(
+    remaining.expected["src/content/posts/example.mdoc"],
+    base.example,
+  );
 });

@@ -77,6 +77,8 @@ const words = {
     successful: "发布成功",
     failed: "发布未完成",
     "status-unavailable": "暂时无法确认部署状态",
+    syncPending:
+      "内容已上传。本机项目尚未同步，正在重试；无需重新发布，草稿仍保留。",
     checkActions: "查看 GitHub Actions",
     visit: "打开线上博客",
     authNeeded: "发布前需要连接 GitHub",
@@ -164,6 +166,8 @@ const words = {
     successful: "Published successfully",
     failed: "Publication incomplete",
     "status-unavailable": "Deployment status unavailable",
+    syncPending:
+      "Content was uploaded. Updating the local project is pending and will retry; do not publish again. Your drafts are preserved.",
     checkActions: "View GitHub Actions",
     visit: "Open live blog",
     authNeeded: "Connect GitHub before publishing",
@@ -279,6 +283,7 @@ export default function Studio() {
     const phase = data?.publication?.phase;
     if (
       !data?.auth?.checking &&
+      !data?.publication?.syncPending &&
       !["building", "uploading", "deploying", "status-unavailable"].includes(
         phase,
       )
@@ -291,7 +296,11 @@ export default function Studio() {
       data?.auth?.checking ? 2000 : 12000,
     );
     return () => clearInterval(timer);
-  }, [data?.publication?.phase, data?.auth?.checking]);
+  }, [
+    data?.publication?.phase,
+    data?.publication?.syncPending,
+    data?.auth?.checking,
+  ]);
   useEffect(() => {
     const handler = (e: BeforeUnloadEvent) => {
       if (dirty) e.preventDefault();
@@ -329,12 +338,11 @@ export default function Studio() {
     };
   }, [creating]);
   const pending = data?.posts.filter((p: any) => p.changed) ?? [];
-  const active = [
-    "building",
-    "uploading",
-    "deploying",
-    "status-unavailable",
-  ].includes(data?.publication?.phase);
+  const active =
+    data?.publication?.syncPending ||
+    ["building", "uploading", "deploying", "status-unavailable"].includes(
+      data?.publication?.phase,
+    );
   const selection = { slugs: selected, settings: selectSettings };
   function changeConfig(next: any) {
     configVersion.current += 1;
@@ -783,6 +791,9 @@ export default function Studio() {
                         )[data.publication.phase] ?? data.publication.message)
                       : data.publication.message}
                   </p>
+                  {data.publication.syncPending && (
+                    <p role="status">{t.syncPending}</p>
+                  )}
                   {data.publication.sha && (
                     <code>{data.publication.sha.slice(0, 12)}</code>
                   )}
