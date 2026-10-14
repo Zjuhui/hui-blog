@@ -1,23 +1,148 @@
 {
-  "name": "珲",
+  "name": "Hui-blog",
   "accent": "cinnabar",
+  "presentation": {
+    "branding": {
+      "mark": "",
+      "wordmark": "",
+      "showMark": false,
+      "showWordmark": false
+    },
+    "text": {
+      "zh": {
+        "home": "首页",
+        "writing": "文章",
+        "works": "作品",
+        "about": "关于我",
+        "research": "科研",
+        "life": "生活",
+        "all": "全部",
+        "latest": "最近",
+        "allPosts": "全部",
+        "selected": "一些作品",
+        "notebook": "文字与记录",
+        "archiveDesc": "一些想法，一些片刻。按时间留在这里。",
+        "worksDesc": "从想法到实践，记录做过的东西。",
+        "aboutTitle": "你好，我是珲。",
+        "aboutEyebrow": "关于这个小小的空间",
+        "worksEyebrow": "把想法做出来",
+        "margin": "研究 / 生活 / 创作",
+        "footer": "先写，再生长。",
+        "back": "返回文章",
+        "empty": "这里还没有文章，慢慢来。",
+        "note": "文章保留原来的书写语言。",
+        "count": "篇记录"
+      },
+      "en": {
+        "home": "Home",
+        "writing": "Writing",
+        "works": "Works",
+        "about": "About me",
+        "research": "Research",
+        "life": "Life",
+        "all": "All",
+        "latest": "Latest",
+        "allPosts": "ALL",
+        "selected": "Selected work",
+        "notebook": "Notes & observations",
+        "archiveDesc": "Some thoughts, some moments. Collected over time.",
+        "worksDesc": "From an idea to something real. A record of things I make.",
+        "aboutTitle": "Hello, I'm Hui.",
+        "aboutEyebrow": "A little about this place",
+        "worksEyebrow": "FROM IDEAS TO THINGS",
+        "margin": "RESEARCH / LIFE / MAKING",
+        "footer": "Write first. Let it grow.",
+        "back": "Back to writing",
+        "empty": "Nothing here yet. Give it time.",
+        "note": "Articles stay in the language they were written in.",
+        "count": "entries"
+      }
+    },
+    "navigation": [
+      {
+        "id": "home",
+        "kind": "page",
+        "page": "home",
+        "visible": true
+      },
+      {
+        "id": "writing",
+        "kind": "page",
+        "page": "writing",
+        "visible": true
+      },
+      {
+        "id": "works",
+        "kind": "page",
+        "page": "works",
+        "visible": true
+      },
+      {
+        "id": "about",
+        "kind": "page",
+        "page": "about",
+        "visible": true
+      }
+    ],
+    "home": {
+      "sections": [
+        {
+          "id": "intro",
+          "visible": true
+        },
+        {
+          "id": "recent",
+          "visible": true
+        },
+        {
+          "id": "works",
+          "visible": true
+        },
+        {
+          "id": "note",
+          "visible": false
+        }
+      ],
+      "recentLimit": 6,
+      "showMargin": true
+    },
+    "footer": {
+      "showMark": true,
+      "showCopyright": true
+    }
+  },
+  "appearance": {
+    "background": "#ffffff",
+    "text": "#292d33",
+    "accent": "#315a8b",
+    "headingFont": "sans",
+    "bodyFont": "sans",
+    "fontSize": 17,
+    "lineHeight": 1.85,
+    "readingWidth": 720,
+    "layout": "index",
+    "spacing": "compact",
+    "navigation": "top",
+    "introduction": "compact",
+    "showToc": false
+  },
   "intro": {
     "zh": {
-      "eyebrow": "一份慢慢生长的个人记录",
-      "title": "科研之外，生活之中。",
-      "body": "我是珲。在这里记录研究中的问题、生活里的片刻，以及一路做过的东西。先写，再生长。"
+      "eyebrow": "Hui Lu",
+      "title": "Haven't decided yet.",
+      "body": "Haven't decided yet."
     },
     "en": {
-      "eyebrow": "A notebook, growing over time",
-      "title": "A little research.\nA little life.",
-      "body": "I'm Hui. This is a place for questions from research, moments from everyday life, and things I make along the way. Write first. Let it grow."
+      "eyebrow": "Hi, I'm Hui Lu, a second-year PhD student at Zhejiang University",
+      "title": "Haven't decided yet.",
+      "body": "Haven't decided yet."
     }
   },
   "about": {
-    "zh": "我想要一个自己的空间，用来放下那些不适合只留在聊天窗口、实验记录或者社交媒体里的东西。\n\n这里有科研记录、生活随笔和作品。不是每个问题都有答案，也不是每段记录都需要结论。",
-    "en": "I wanted a space of my own for things that don't quite belong in a chat window, an experiment log, or a social feed.\n\nHere you'll find research notes, fragments of everyday life, and things I make. Not every question needs an answer. Not every note needs a conclusion."
+    "zh": "Haven't decided yet.",
+    "en": "Haven't decided yet."
   },
-  "quote": "If You Are Nothing Without AI, Then You Shouldn't Have It!",
+  "quote": "",
   "showQuote": false,
   "socialLinks": [
     {
